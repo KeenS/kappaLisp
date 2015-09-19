@@ -16,6 +16,11 @@ fn next_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<c
     input.next()
 }
 
+fn is_delimiter(c: char) -> bool {
+    c.is_whitespace() || "()\"'".contains(c)
+}
+
+
 fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
     let mut acc = String::new();
     let mut c = first;
@@ -44,19 +49,48 @@ fn read_int(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<
     }
 }
 
+fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    let mut sym = first.to_string();
+    while input.peek().map(|c| !is_delimiter(*c)).unwrap_or(false) {
+        sym.push(input.next().unwrap());
+    }
+    Some(Expr::Sym(sym))
+}
+
+fn read_plus(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    let c = match input.peek() {
+        None => return None,
+        Some(c) => c.clone()
+    };
+    match c.is_digit(10) {
+        true => read_int(input, first, 10),
+        false => read_symbol(input, first)
+    }
+}
+
+
 fn read_hyphen(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let c = match input.peek() {
         None => return None,
         Some(c) => c.clone()
     };
     match c.is_digit(10) {
-            true => read_int(input, first, 10),
-            false => None
+        true => read_int(input, first, 10),
+        false => read_symbol(input, first)
     }
 }
 
+fn read_string(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    let mut sym = String::new();
+    // :TODO: treat escapes
+    while input.peek().map(|c| *c != '"').unwrap_or(false) {
+        sym.push(input.next().unwrap());
+    }
+    Some(Expr::Str(sym))
+}
+
 fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
-    let c = next_nonwhitespaces(input, first);
+    let c = next_nonwhitespaces(input, ' ');
     let car =  match c {
         Some(c) => match c {
             ')' => return Some(Expr::Nil),
@@ -64,8 +98,11 @@ fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
         },
         None => return None  
     };
-    let c = input.next();
-    let cdr = c.and_then(|c| read_list(input, c));
+    match input.peek() {
+        None => return None,
+        Some(c) => ()
+    }
+    let cdr = read_list(input, '(');
     match (car, cdr) {
         (Some(car_), Some(cdr_)) => Some(Expr::Cons(Box::new(car_), Box::new(cdr_))),
         _ => None
@@ -80,38 +117,61 @@ fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     };
     match first {
         '0'...'9' => read_uint(input, first, 10),
-        '-' => read_int(input, first, 10),
-        '+' => read_int(input, first, 10),
-        '(' => match input.next() {
-            Some(c) => read_list(input, c),
-            None => None
-        },
-        _   => unreachable!()
+        '-' => read_hyphen(input, first),
+        '+' => read_plus(input, first),
+        '(' => read_list(input, first),
+        '"' => read_string(input, first),
+        _   => read_symbol(input, first)
     }
 }
 
-fn read(s: &str) -> Option<Expr> {
+fn read(s: &str) -> Expr {
     let mut input = s.chars().peekable();
-    read_aux(&mut input, ' ')
+    match read_aux(&mut input, ' ') {
+        Some(ex) => ex,
+        None => Expr::EOF
+    }
 }
 
 
 
 #[test]
 fn test_read_empty(){
-    assert!(read("") == None)
+    assert!(read("") == Expr::EOF)
 }
 
 #[test]
 fn test_read_int() {
-    assert!(read("0") == Some(Expr::Int(0)));
-    assert!(read("10") == Some(Expr::Int(10)));
-    assert!(read("-10") == Some(Expr::Int(-10)));
+    assert!(read("0") == (Expr::Int(0)));
+    assert!(read("10") == (Expr::Int(10)));
+    assert!(read("-10") == (Expr::Int(-10)));
+    assert!(read("+10") == (Expr::Int(10)));
 }
 
 #[test]
 fn test_read_list(){
-    assert!(read("()") == Some(Expr::Nil));
-    assert!(read("(1)") == Some(Expr::Cons(Box::new(Expr::Int(1)), Box::new(Expr::Nil))));
-    assert!(read("(1 2)") == Some(Expr::Cons(Box::new(Expr::Int(1)), Box::new(Expr::Cons(Box::new(Expr::Int(2)), Box::new(Expr::Nil))))));
+    assert!(read("()") == (Expr::Nil));
+    assert!(read("(1)") == (Expr::Cons(Box::new(Expr::Int(1)), Box::new(Expr::Nil))));
+    assert!(read("(1 2)") == (Expr::Cons(Box::new(Expr::Int(1)), Box::new(Expr::Cons(Box::new(Expr::Int(2)), Box::new(Expr::Nil))))));
+}
+
+
+#[test]
+fn test_read_symbol(){
+    assert!(read("symbol") == (Expr::Sym("symbol".to_string())));
+    assert!(read("+symbol") == (Expr::Sym("+symbol".to_string())));
+    assert!(read("-symbol") == (Expr::Sym("-symbol".to_string())));
+    assert!(read("sym-bol") == (Expr::Sym("sym-bol".to_string())));
+    assert!(read("symbol2") == (Expr::Sym("symbol2".to_string())));
+}
+
+
+#[test]
+fn test_read_string(){
+    println!("{:?}", read("\"string\""));
+    assert!(read("\"string\"") == (Expr::Str("string".to_string())));
+    assert!(read("\"str()ing\"") == (Expr::Str("str()ing".to_string())));
+    assert!(read("\"str123ing\"") == (Expr::Str("str123ing".to_string())));
+    assert!(read("\"()string\"") == (Expr::Str("()string".to_string())));
+    assert!(read("\"123string\"") == (Expr::Str("123string".to_string())));
 }
