@@ -1,27 +1,42 @@
 use expr::Expr;
 
-fn k_add_aux(x: &Expr, y: &Expr) -> Expr {
-    match (x, y) {
-        (&Expr::Int(x), &Expr::Int(y)) => Expr::Int(x + y),
-        _ => panic!("non int args {:?} and {:?} are given to +", x, y)
-    }
-}
-
-fn k_add(args:& Expr) -> Expr {
-    let mut res = Expr::Int(0);
+fn k_fold<F:Fn(&Expr, &Expr) -> Expr>(f: F, init: Expr, args: &Expr) -> Expr {
+    let mut res = init;
     let mut head = args;
     while head != &Expr::Nil {
         match head {
             &Expr::Cons(ref car,ref cdr) => {
-                res = k_add_aux(&res, &car);
+                res = f(&res, &car);
                 head = &cdr
             }
             _ => panic!("invalid argument {:?} to function", args)
         }
     };
     res
+    
 }
 
+
+// since rust's macro cannot treat binop, work around macro is needed.
+
+macro_rules! expr {
+    ($e:expr) => {
+        $e
+    }
+}
+
+macro_rules! def_arith_op {
+    ($name: ident, $op: tt, $init: expr) => {
+        fn $name(args:& Expr) -> Expr {
+            k_fold(|x, y| match (x, y) {
+                (&Expr::Int(x), &Expr::Int(y)) => Expr::Int(expr!(x $op y)),
+                _ => panic!("non int args {:?} and {:?} are given to $op", x, y)
+            }, $init, args)
+        }
+    }
+}
+
+def_arith_op!(k_add, +, Expr::Int(0));
 
 fn funcall(f: &Expr, args: &Expr) -> Expr {
     match f {
