@@ -5,7 +5,4 @@ extern crate mdo;
 pub mod expr;
 pub mod read;
 pub mod eval;
-
-#[test]
-fn it_works() {
-}
+pub mod env;

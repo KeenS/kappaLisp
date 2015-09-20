@@ -1,5 +1,6 @@
 use std::str::Chars;
 use std::iter::Peekable;
+use std::rc::Rc;
 
 use mdo::option::{bind, ret};
 use expr::Expr;
@@ -104,7 +105,7 @@ fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
     let cdr = read_list(input, '(');
     match (car, cdr) {
-        (Some(car_), Some(cdr_)) => Some(Expr::Cons(Box::new(car_), Box::new(cdr_))),
+        (Some(car), Some(cdr)) => Some(Expr::cons(car, cdr)),
         _ => None
     }
         
@@ -125,7 +126,7 @@ fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
 }
 
-fn read(s: &str) -> Expr {
+pub fn read(s: &str) -> Expr {
     let mut input = s.chars().peekable();
     match read_aux(&mut input, ' ') {
         Some(ex) => ex,
@@ -137,7 +138,8 @@ fn read(s: &str) -> Expr {
 
 #[test]
 fn test_read_empty(){
-    assert!(read("") == Expr::EOF)
+    assert!(read("") == (Expr::EOF));
+    assert!(read("(a b") == (Expr::EOF));
 }
 
 #[test]
@@ -151,8 +153,8 @@ fn test_read_int() {
 #[test]
 fn test_read_list(){
     assert!(read("()") == (Expr::Nil));
-    assert!(read("(1)") == (Expr::Cons(Box::new(Expr::Int(1)), Box::new(Expr::Nil))));
-    assert!(read("(1 2)") == (Expr::Cons(Box::new(Expr::Int(1)), Box::new(Expr::Cons(Box::new(Expr::Int(2)), Box::new(Expr::Nil))))));
+    assert!(read("(1)") == (Expr::cons(Expr::Int(1), Expr::Nil)));
+    assert!(read("(1 2)") == (Expr::cons(Expr::Int(1), Expr::cons(Expr::Int(2),Expr::Nil))));
 }
 
 
