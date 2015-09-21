@@ -111,6 +111,30 @@ fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
         
 }
 
+fn read_quote(mut input: &mut Peekable<Chars>, first: char)  -> Option<Expr> {
+    mdo!{
+        v =<< read_aux(input, ' ');
+        ret ret(Expr::list2(Expr::Sym("quote".to_string()), v))
+    }
+}
+
+fn read_function(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    mdo!{
+        v =<< read_aux(input, ' ');
+        ret ret(Expr::list2(Expr::Sym("function".to_string()), v))
+    }    
+}
+
+fn read_dispatch(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    mdo!{
+        v =<< input.next();
+        ret match v {
+            '\'' => read_function(input, '\''),
+            v => panic!("unknown reader macro #{:?}", v)
+        }
+    }
+}
+
 fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let first =  match next_nonwhitespaces(input, first) {
         Some(c) => c,
@@ -122,6 +146,8 @@ fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
         '+' => read_plus(input, first),
         '(' => read_list(input, first),
         '"' => read_string(input, first),
+        '\'' => read_quote(input, first),
+        '#' => read_dispatch(input, first),
         _   => read_symbol(input, first)
     }
 }
@@ -170,10 +196,25 @@ fn test_read_symbol(){
 
 #[test]
 fn test_read_string(){
-    println!("{:?}", read("\"string\""));
     assert!(read("\"string\"") == (Expr::Str("string".to_string())));
     assert!(read("\"str()ing\"") == (Expr::Str("str()ing".to_string())));
     assert!(read("\"str123ing\"") == (Expr::Str("str123ing".to_string())));
     assert!(read("\"()string\"") == (Expr::Str("()string".to_string())));
     assert!(read("\"123string\"") == (Expr::Str("123string".to_string())));
+}
+
+#[test]
+fn test_read_quote(){
+    assert!(read("'1") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::Int(1))));
+    assert!(read("'symbol") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::Sym("symbol".to_string()))));
+    assert!(read("'\"string\"") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::Str("string".to_string()))));
+    assert!(read("'(1 2)") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
+}
+
+#[test]
+fn test_read_function(){
+    assert!(read("#'1") == (Expr::list2(Expr::Sym("function".to_string()), Expr::Int(1))));
+    assert!(read("#'symbol") == (Expr::list2(Expr::Sym("function".to_string()), Expr::Sym("symbol".to_string()))));
+    assert!(read("#'\"string\"") == (Expr::list2(Expr::Sym("function".to_string()), Expr::Str("string".to_string()))));
+    assert!(read("#'(1 2)") == (Expr::list2(Expr::Sym("function".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
 }
