@@ -78,6 +78,17 @@ def_arith_op!(k_sub, -, Expr::Int(0));
 def_arith_op!(k_mul, *, Expr::Int(1));
 def_arith_op!(k_div, /, Expr::Int(1));
 
+fn k_concat(mut env: &mut Env, args: Expr) -> Expr {
+    f_foldl(env, &|_, acc, x| match (acc, x) {
+        (Expr::Str(ref acc), &Expr::Str(ref x)) => {
+            Expr::Str(format!("{}{}",acc, x))
+        },
+        (_, y) => panic!("non string args {:?} are given to concat", y)
+    }
+            , Expr::Str("".to_string()), &args)
+}
+
+
 fn k_funcall(mut env: &mut Env, args: Expr) -> Expr {
     match args {
         Expr::Cons(f, args) => funcall(env, f.deref(), args.deref().clone()),
@@ -114,7 +125,7 @@ fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Expr {
             &Prim::Mul => k_mul(env, args),
             &Prim::Div => k_div(env, args),
             &Prim::Funcall => k_funcall(env, args),
-            prim => panic!("unknown function {:?}", prim)
+            &Prim::Concat => k_concat(env, args)
         },
         &Expr::Lambda(ref params, ref body) => {
             env.new_local();
@@ -276,6 +287,11 @@ fn test_div(){
 #[test]
 fn test_nested_arith(){
     assert!(eval(&mut Env::new(), read("(/ (- (+ 1 (* 2 3)) 3) 2)")) == (Expr::Int(2)));
+}
+
+#[test]
+fn test_concat(){
+    assert!(eval(&mut Env::new(), read("(concat \"a\" \"b\" \"cd\")")) == (Expr::Str("abcd".to_string())))
 }
 
 #[test]
