@@ -52,10 +52,18 @@ macro_rules! expr {
 macro_rules! def_arith_op {
     ($name: ident, $op: tt, $init: expr) => {
         fn $name(mut env: &mut Env, args: Expr) -> Expr {
+            let (init, args) = match args {
+                Expr::Cons(ref hd, ref tl) => match tl.deref() {
+                    tl @ &Expr::Cons(_, _) => (hd.deref().clone(), tl.clone()),
+                    tl => ($init, Expr::cons(hd.deref().clone(), tl.clone()))
+                },
+                args => ($init, args)
+            };
             f_foldl(env, &|_, x, y| match (x, y) {
                 (Expr::Int(x), &Expr::Int(y)) => Expr::Int(expr!(x $op y)),
                 (x, y) => panic!("non int args {:?} and {:?} are given to $op", x, y)
-            }, $init, &args)
+            }, init, &args)
+
         }
     }
 }
@@ -79,9 +87,9 @@ fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Expr {
     }
 }
 
-fn feval(mut env: &mut Env, expr: &Expr) -> Expr {
+fn feval(mut env: &mut Env, expr: Expr) -> Expr {
     match expr {
-        &Expr::Sym(ref sym) => match &sym[..] {
+        Expr::Sym(ref sym) => match &sym[..] {
             "+" => Expr::FLambda(Prim::Add),
             "-" => Expr::FLambda(Prim::Sub),
             "*" => Expr::FLambda(Prim::Mul),
@@ -89,7 +97,7 @@ fn feval(mut env: &mut Env, expr: &Expr) -> Expr {
             "concat" => Expr::FLambda(Prim::Concat),
             fun => panic!("function {:?} not found", fun)
         },
-        &Expr::Lambda(_, _) => expr.clone(),
+        Expr::Lambda(_, _) => expr,
         x => panic!("{:?} is not a function", x)
     }
 }
@@ -104,7 +112,7 @@ fn eval(mut env: &mut Env, expr: Expr) -> Expr {
         Expr::FLambda(_) => expr,
         Expr::Sym(_) => panic!("symbol evaluation is not supported"),
         Expr::Cons(car, cdr) => {
-            let f = feval(env, car.deref());
+            let f = feval(env, car.deref().clone());
             let arg = f_map(env, &|env, x| eval(env, x), cdr.deref());
             funcall(env, &f, arg)
         }
@@ -152,3 +160,7 @@ fn test_div(){
     assert!(eval(&mut Env::new(), read("(/ 3 2 1)")) == (Expr::Int(1)));
 }
 
+#[test]
+fn test_nested_arith() {
+    assert!(eval(&mut Env::new(), read("(/ (- (+ 1 (* 2 3)) 3) 2)")) == (Expr::Int(2)));
+}
