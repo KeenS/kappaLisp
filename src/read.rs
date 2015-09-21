@@ -82,12 +82,19 @@ fn read_hyphen(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
 }
 
 fn read_string(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
-    let mut sym = String::new();
+    let mut string = String::new();
     // :TODO: treat escapes
-    while input.peek().map(|c| *c != '"').unwrap_or(false) {
-        sym.push(input.next().unwrap());
-    }
-    Some(Expr::Str(sym))
+    while true {
+        match input.next() {
+            Some(c) => match c == '"' {
+                true =>  return Some(Expr::Str(string)),
+                false => string.push(c)
+            },
+            None => return None
+        } 
+    };
+    // to make compiler happy
+    None
 }
 
 fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
@@ -201,6 +208,7 @@ fn test_read_string(){
     assert!(read("\"str123ing\"") == (Expr::Str("str123ing".to_string())));
     assert!(read("\"()string\"") == (Expr::Str("()string".to_string())));
     assert!(read("\"123string\"") == (Expr::Str("123string".to_string())));
+    assert!(read("(\"string\")") == (Expr::list1(Expr::Str("string".to_string()))));
 }
 
 #[test]
