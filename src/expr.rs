@@ -19,7 +19,8 @@ pub enum Prim {
     Div,
     Mul,
     Concat,
-    Funcall
+    Funcall,
+    Double
 }
 
 
