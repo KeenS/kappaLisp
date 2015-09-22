@@ -78,6 +78,55 @@ def_arith_op!(k_sub, -, Expr::Int(0));
 def_arith_op!(k_mul, *, Expr::Int(1));
 def_arith_op!(k_div, /, Expr::Int(1));
 
+macro_rules! get_args_one {
+    ($v:expr, int) => {
+        match $v {
+            &Expr::Int(x) => {x.clone()},
+            hd => panic!("nil expected but got {:?}", hd)
+        }
+    };
+    ($v:expr, str) => {
+        match $v {
+            &Expr::Str(ref x) => {x.clone()},
+            hd => panic!("string expected but got {:?}", hd)
+        }
+    };
+    ($v:expr, sym) => {
+        match $v {
+            &Expr::Sym(ref x) => {x.clone()},
+            hd => panic!("symbol expected but got {:?}", hd)
+        }
+    };
+    ($v:expr, nil) => {
+        match $v {
+            &Expr::Int(x) => {x.clone()},
+            hd => panic!("nil expected but got {:?}", hd)
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! get_args {
+    ($args: expr, ($var: ident, $ident: tt), $($other:tt), *) =>
+        (
+            let $var = match $args {
+                Expr::Cons(ref hd, ref tl) => get_args_one!(hd.deref(), $ident),
+                Expr::Nil => panic!("invalid number of arguments"),
+                args => panic!("invalid argument to function call")
+            };
+            get_args!(tl.deref.clone(), $($other),*)
+        )
+    ;
+    ($args: expr, ) => ();
+}
+
+
+fn k_double(mut env: &mut Env, args: Expr) -> Expr {
+    get_args!(args, (x, int),);
+    Expr::Int(x*2)
+}
+
+
 fn k_concat(mut env: &mut Env, args: Expr) -> Expr {
     f_foldl(env, &|_, acc, x| match (acc, x) {
         (Expr::Str(ref acc), &Expr::Str(ref x)) => {
@@ -125,7 +174,8 @@ fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Expr {
             &Prim::Mul => k_mul(env, args),
             &Prim::Div => k_div(env, args),
             &Prim::Funcall => k_funcall(env, args),
-            &Prim::Concat => k_concat(env, args)
+            &Prim::Concat => k_concat(env, args),
+            &Prim::Double => k_double(env, args)
         },
         &Expr::Lambda(ref params, ref body) => {
             env.new_local();
@@ -184,6 +234,7 @@ fn feval(mut env: &mut Env, expr: Expr) -> Expr {
             "/" => Expr::FLambda(Prim::Div),
             "concat" => Expr::FLambda(Prim::Concat),
             "funcall" => Expr::FLambda(Prim::Funcall),
+            "double" => Expr::FLambda(Prim::Double),
             fun => match env.ffind(&fun.to_string()) {
                 Some(f) => f.clone(),
                 None => panic!("function {:?} not found", fun)
@@ -205,7 +256,7 @@ fn feval(mut env: &mut Env, expr: Expr) -> Expr {
 }
 
 
-fn eval(mut env: &mut Env, expr: Expr) -> Expr {
+pub fn eval(mut env: &mut Env, expr: Expr) -> Expr {
     match expr {
         Expr::Nil |
         Expr::EOF |
@@ -316,3 +367,7 @@ fn test_funcall(){
 }
 
 
+#[test]
+fn test_double() {
+    assert!(eval(&mut Env::new(), read("(double 1)")) == (Expr::Int(2)))
+}
