@@ -8,7 +8,7 @@ pub enum Expr {
     Sym(String),
     Str(String),
     Lambda(Rc<Expr>, Rc<Expr>),
-    FLambda(Prim),
+    FLambda(String),
     EOF
 }
 
@@ -20,7 +20,6 @@ pub enum Prim {
     Mul,
     Concat,
     Funcall,
-    Double
 }
 
 
