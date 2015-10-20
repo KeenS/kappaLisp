@@ -4,6 +4,7 @@ use std::ops::Deref;
 use expr::{Expr,Prim};
 use env::Env;
 use read::read;
+use skk;
 
 fn f_foldl<F:Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String> {
     let mut res = init;
@@ -166,12 +167,17 @@ fn bind_names(mut env: &mut Env, params: Expr, args: Expr) -> Result<(), String>
 
 fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Result<Expr, String> {
     match f {
-        &Expr::FLambda(ref prim) => {
-            let fun =  match env.pfind(prim) {
-                Some(fun) => fun.clone(),
-                None => return Err(format!("ICE"))
-            };
-            fun(env, args)
+        &Expr::FLambda(prim) => {
+            match prim {
+                Prim::Add => k_add(env, args),
+                Prim::Sub => k_sub(env, args),
+                Prim::Div => k_div(env, args),
+                Prim::Mul => k_mul(env, args),
+                Prim::Concat => k_concat(env, args),
+                Prim::Funcall => k_funcall(env, args),
+                Prim::CurrentTimeString => skk::k_current_time_string(env, args),
+                Prim::SkkCalc => skk::k_skk_calc(env, args)
+            }
         },
         &Expr::Lambda(ref params, ref body) => {
             env.new_local();
@@ -226,9 +232,19 @@ fn feval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
         Expr::Sym(ref sym) => {
             match env.ffind(sym) {
                 Some(f) => Ok(f.clone()),
-                None => match env.pfind(sym) {
-                    Some(_) => Ok(Expr::FLambda(sym.clone())),
-                    None => Err(format!("function {:?} not found", sym))
+                None => {
+                    let prim = match &sym[..] {
+                        "+" => Prim::Add,
+                        "-" => Prim::Sub,
+                        "/" => Prim::Div,
+                        "*" =>Prim:: Mul,
+                        "concat" => Prim::Concat,
+                        "funcall" => Prim::Funcall,
+                        "current-time-string" => Prim::CurrentTimeString,
+                        "skk-calc" => Prim::SkkCalc,
+                        _ => return Err(format!("function {:?} not found", sym))
+                    };
+                    Ok(Expr::FLambda(prim))
                 }
             }
         },
@@ -356,10 +372,4 @@ fn test_funcall(){
     assert!(eval(&mut Env::new(), read("(funcall #'+ 1 2)")) == Ok(Expr::Int(3)));
     assert!(eval(&mut Env::new(), read("(funcall #'(lambda (x y) (* x y)) 1 2)")) == Ok(Expr::Int(2)));
     assert!(eval(&mut Env::new(), read("(funcall (lambda (x y) (* x y)) 1 2)")) == Ok(Expr::Int(2)))
-}
-
-
-#[test]
-fn test_double() {
-    assert!(eval(&mut Env::new(), read("(double 1)")) == Ok(Expr::Int(2)))
 }

@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::fmt;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Expr {
@@ -8,11 +9,11 @@ pub enum Expr {
     Sym(String),
     Str(String),
     Lambda(Rc<Expr>, Rc<Expr>),
-    FLambda(String),
+    FLambda(Prim),
     EOF
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Copy)]
 pub enum Prim {
     Add,
     Sub,
@@ -20,6 +21,8 @@ pub enum Prim {
     Mul,
     Concat,
     Funcall,
+    CurrentTimeString,
+    SkkCalc
 }
 
 
@@ -34,4 +37,38 @@ impl Expr {
     pub fn list2(a1: Expr, a2: Expr) -> Expr {
         Expr::cons(a1, Expr::list1(a2))
     }
+}
+
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+        match self.clone() {
+            Expr::Int(i) => write!(f, "{}", i),
+            // :TODO: pretty print for lists
+            Expr::Cons(ref car,ref cdr) => write!(f, "({} . {})", car, cdr),
+            Expr::Nil => write!(f, "nil"),
+            Expr::Sym(ref s) => write!(f, "{}", s),
+            Expr::Str(ref s) => write!(f, "\"{}\"", s),
+            Expr::Lambda(args, body) => write!(f, "(lambda {} {})", args, body),
+            Expr::FLambda(prim) => write!(f, "{}", prim),
+            Expr::EOF => write!(f, "<EOF>")
+        }
+    }
+}
+
+
+impl fmt::Display for Prim {
+    fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+        match self.clone() {
+            Prim::Add => write!(f, "+"),
+            Prim::Sub => write!(f, "-"),
+            Prim::Div => write!(f, "/"),
+            Prim::Mul => write!(f, "*"),
+            Prim::Concat => write!(f, "concat"),
+            Prim::Funcall => write!(f, "funcall"),
+            Prim::CurrentTimeString => write!(f, "current-time-string"),
+            Prim::SkkCalc => write!(f, "skk-calc")
+        }
+    }
+    
 }
