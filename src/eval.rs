@@ -6,7 +6,8 @@ use env::Env;
 use read::read;
 use skk;
 
-fn f_foldl<F:Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String> {
+fn f_foldl<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String>
+    where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>{
     let mut res = init;
     let mut head = args;
     let nil = &Expr::Nil;
@@ -26,7 +27,8 @@ fn f_reverse(mut env: &mut Env, args: &Expr) -> Result<Expr, String> {
     f_foldl(env, &|_, acc, x| Ok(Expr::Cons(Rc::new(x.clone()), Rc::new(acc))), Expr::Nil, args)
 }
 
-fn f_foldr<F:Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String> {
+fn f_foldr<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String>
+    where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>{
     match args {
         &Expr::Nil => Ok(init),
         &Expr::Cons(ref car, ref cdr) => {
@@ -37,12 +39,14 @@ fn f_foldr<F:Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>>(mut env: &mut En
     }
 }
 
-fn f_map<F:Fn(&mut Env, Expr) -> Result<Expr, String>>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String> {
+fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String>
+    where F: Fn(&mut Env, Expr) -> Result<Expr, String>{
     f_foldr(env, &|env, acc, x| Ok(Expr::cons(try!(f(env, x.clone())), acc))
                  , Expr::Nil, list)
 }
 
-fn f_iter<F:Fn(&mut Env, Expr) -> Result<(), String>>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String> {
+fn f_iter<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String>
+    where F: Fn(&mut Env, Expr) -> Result<(), String>{
     f_foldr(env, &|env, acc, x| {try!(f(env,x.clone())); Ok(Expr::Nil)}
                  , Expr::Nil, list)
 }
