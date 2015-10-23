@@ -116,13 +116,19 @@ macro_rules! get_args {
         (
             let $var = match $args {
                 Expr::Cons(ref hd, ref tl) => try!(get_args_one!(hd.deref(), $ident)),
-                Expr::Nil => return Err(format!("invalid number of arguments")),
-                args => return Err(format!("invalid argument to function call"))
+                Expr::Nil => return Err(format!("shorting number of arguments")),
+                args => return Err(format!("invalid argument {} to function call", args))
             };
-            get_args!(tl.deref.clone(), $($other),*)
+            
+            get_args!(try!(Expr::cdr($args)), $($other),*)
         )
     ;
-    ($args: expr, ) => ();
+    ($args: expr, ) => (
+        match $args {
+            Expr::Nil => (),
+            args => return Err(format!("exceeding number of arguments: {}", args))
+        }
+        );
 }
 
 

@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::ops::Deref;
 use std::fmt;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -36,6 +37,19 @@ impl Expr {
     }
     pub fn list2(a1: Expr, a2: Expr) -> Expr {
         Expr::cons(a1, Expr::list1(a2))
+    }
+
+    pub fn car(cons: Expr) -> Result<Expr, String> {
+        match cons {
+            Expr::Cons(ref car, _) => Ok(car.deref().clone()),
+            arg => Err(format!("invalid argument {} is passed to car", arg))
+        }
+    }
+    pub fn cdr(cons: Expr) -> Result<Expr, String> {
+        match cons {
+            Expr::Cons(_, ref cdr) => Ok(cdr.deref().clone()),
+            arg => Err(format!("invalid argument {} is passed to cdr", arg))
+        }
     }
 }
 
