@@ -112,7 +112,7 @@ macro_rules! get_args_one {
 
 #[macro_export]
 macro_rules! get_args {
-    ($args: expr, ($var: ident, $ident: tt), $($other:tt), *) =>
+    ($args: expr, ($var: ident, $ident: tt) $($other:tt) *) =>
         (
             let $var = match $args {
                 Expr::Cons(ref hd, ref tl) => try!(get_args_one!(hd.deref(), $ident)),
@@ -129,11 +129,17 @@ macro_rules! get_args {
             args => return Err(format!("exceeding number of arguments: {}", args))
         }
         );
+    ($args: expr) => (
+        match $args {
+            Expr::Nil => (),
+            args => return Err(format!("exceeding number of arguments: {}", args))
+        }
+        );
 }
 
 
 fn k_double(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    get_args!(args, (x, int),);
+    get_args!(args, (x, int));
     Ok(Expr::Int(x*2))
 }
 

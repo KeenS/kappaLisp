@@ -11,13 +11,13 @@ use env::Env;
 use eval::eval;
 
 pub fn k_current_time_string(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    get_args!(args,);
+    get_args!(args);
     let now = time::now();
     Ok(Expr::Str(format!("{}", now.ctime())))
 }
 
 pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    get_args!(args, (op, sym),);
+    get_args!(args, (op, sym));
     let x = 3;
     let y = 2;
     let res = match &op[..] {
