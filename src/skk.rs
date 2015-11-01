@@ -18,8 +18,8 @@ pub fn k_current_time_string(mut env: &mut Env, args: Expr) -> Result<Expr, Stri
 
 pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(args, (op, sym));
-    let x = 3;
-    let y = 2;
+    let skk_num_list = try!(env.find(&"skk-num-list".to_string())).clone();
+    get_args!(skk_num_list, (x, int) (y, int));
     let res = match &op[..] {
         "+" => x + y,
         "-" => x - y,
@@ -49,8 +49,11 @@ pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
 
 #[test]
 fn test_skk_calc(){
-    assert!(eval(&mut Env::new(), read("(skk-calc '+)")) == Ok(Expr::Int(5)));
-    assert!(eval(&mut Env::new(), read("(skk-calc '-)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(skk-calc '*)")) == Ok(Expr::Int(6)));
-    assert!(eval(&mut Env::new(), read("(skk-calc '/)")) == Ok(Expr::Int(1)));
+    let mut env = Env::new();
+    env.register("skk-num-list".to_string(), Expr::list2(Expr::Int(3), Expr::Int(2)));
+    println!("{:?}", eval(&mut Env::new(), read("(skk-calc '+)")));
+    assert!(eval(&mut env, read("(skk-calc '+)")) == Ok(Expr::Int(5)));
+    assert!(eval(&mut env, read("(skk-calc '-)")) == Ok(Expr::Int(1)));
+    assert!(eval(&mut env, read("(skk-calc '*)")) == Ok(Expr::Int(6)));
+    assert!(eval(&mut env, read("(skk-calc '/)")) == Ok(Expr::Int(1)));
 }

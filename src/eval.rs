@@ -110,30 +110,44 @@ macro_rules! get_args_one {
     };
 }
 
-#[macro_export]
-macro_rules! get_args {
+macro_rules! gen_pattern {
+    (($var: ident, $ident: tt) $($other:tt) *) => (
+        ($var, gen_pattern!($($other)*))
+            );
+    () => (())
+}
+
+macro_rules! gen_match {
     ($args: expr, ($var: ident, $ident: tt) $($other:tt) *) =>
         (
-            let $var = match $args {
-                Expr::Cons(ref hd, ref tl) => try!(get_args_one!(hd.deref(), $ident)),
+            match $args {
+                Expr::Cons(ref hd, ref tl) => {
+                    let v = try!(get_args_one!(hd.deref(), $ident));
+                    (v, gen_match!(tl.deref().clone(), $($other)*))
+                },
                 Expr::Nil => return Err(format!("shorting number of arguments")),
                 args => return Err(format!("invalid argument {} to function call", args))
             };
-            
-            get_args!(try!(Expr::cdr($args)), $($other),*)
-        )
-    ;
+            );
     ($args: expr, ) => (
         match $args {
             Expr::Nil => (),
             args => return Err(format!("exceeding number of arguments: {}", args))
         }
         );
+}
+
+#[macro_export]
+macro_rules! get_args {
+    ($args: expr, ($var: ident, $ident: tt) $($other:tt) *) =>
+        (
+            let gen_pattern!(($var, $ident) $($other)*) = gen_match!($args, ($var, $ident) $($other)*)
+            ) ;
+    ($args: expr, ) => (
+        let () = gen_match!($args,)
+        );
     ($args: expr) => (
-        match $args {
-            Expr::Nil => (),
-            args => return Err(format!("exceeding number of arguments: {}", args))
-        }
+        let () = gen_match!($args,)
         );
 }
 
@@ -247,8 +261,8 @@ fn feval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
     match expr {
         Expr::Sym(ref sym) => {
             match env.ffind(sym) {
-                Some(f) => Ok(f.clone()),
-                None => {
+                Ok(f) => Ok(f.clone()),
+                Err(_) => {
                     let prim = match &sym[..] {
                         "+" => Prim::Add,
                         "-" => Prim::Sub,
@@ -289,10 +303,9 @@ pub fn eval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
         Expr::Lambda(_, _) |
         Expr::FLambda(_) => Ok(expr),
         Expr::Sym(ref name) => match env.find(&name.to_string()) {
-            Some(v) => Ok(v.clone()),
-            None => Err(format!("variable {:?} not found", name))
-        }
-,
+            Ok(v) =>Ok(v.clone()),
+            Err(m) => Err(m)
+        },
         Expr::Cons(ref car, ref cdr) => {
             let car = car.deref();
             let cdr = cdr.deref();

@@ -58,24 +58,30 @@ impl Env {
     //     };
     // }
 
-    pub fn find(&self, name: &String)  -> Option<&Expr> {
+    pub fn find(&self, name: &String)  -> Result<&Expr, String> {
         for m in self.local.iter() {
             match m.get(name) {
-                Some(v) => return Some(v),
+                Some(v) => return Ok(v),
                 None => ()
             }
         };
-        self.global.get(name)
+        match self.global.get(name) {
+            Some(v) => Ok(v),
+            None => Err(format!("Variable {:} ist't bound", name))
+        }
     }
 
-    pub fn ffind(&self, name: &String)  -> Option<&Expr> {
+    pub fn ffind(&self, name: &String)  -> Result<&Expr, String> {
         for m in self.flocal.iter() {
             match m.get(name) {
-                Some(v) => return Some(v),
+                Some(v) => return Ok(v),
                 None => ()
             }
         };
-        self.fglobal.get(name)
+        match self.fglobal.get(name) {
+            Some(v) => Ok(v),
+            None => Err(format!("Variable {:} ist't bound", name))
+        }
     }
 
     // pub fn pfind(&self, name: &String)  -> Option<&Box<Fn(&mut Env, Expr) -> Result<Expr, String>>> {
