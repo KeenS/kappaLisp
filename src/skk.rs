@@ -30,21 +30,22 @@ pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     Ok(Expr::Int(res))
 }
 
-// pub fn k_skk_gadget_units_conversion(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-//     get_args!(args, (base_unit, sym), (v, int), (target_unit, sym),);
+pub fn k_skk_gadget_units_conversion(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+    get_args!(args, (base_unit, sym) (v, int) (target_unit, sym));
+    // (* v (cdr (assoc target_unit (cdr (assoc base skk-units-alist)))))
+    // ("mile" ("km" . 1.6093)
+    //         ("yard" . 1760))
 
-//     ("mile" ("km" . 1.6093)
-//      ("yard" . 1760))
+    //     ("yard" ("feet" . 3)
+    //      ("cm" . 91.44))
 
-//         ("yard" ("feet" . 3)
-//          ("cm" . 91.44))
+    //     ("feet" ("inch" . 12)
+    //      ("cm" . 30.48))
 
-//         ("feet" ("inch" . 12)
-//          ("cm" . 30.48))
-
-//         ("inch" ("feet" . 0.5)
-//          ("cm" . 2.54))
-// }
+    //     ("inch" ("feet" . 0.5)
+    //      ("cm" . 2.54))
+    Ok(Expr::Nil)
+}
 
 
 #[test]

@@ -108,17 +108,28 @@ macro_rules! get_args_one {
             hd => Err(format!("nil expected but got {:?}", hd))
         }
     };
+    ($v:expr, cons) => {
+        match $v {
+            &Expr::Cons(ref car, ref cdr) => Ok((car.deref().clone(), cdr.deref().clone())),
+            hd => Err(format!("cons expected but got {:?}", hd))
+        }
+    };
+    ($v:expr, any) => {
+        match $v {
+            hd => Ok(hd.clone())
+        }
+    }
 }
 
 macro_rules! gen_pattern {
-    (($var: ident, $ident: tt) $($other:tt) *) => (
+    (($var: pat, $ident: tt) $($other:tt) *) => (
         ($var, gen_pattern!($($other)*))
             );
     () => (())
 }
 
 macro_rules! gen_match {
-    ($args: expr, ($var: ident, $ident: tt) $($other:tt) *) =>
+    ($args: expr, ($var: pat, $ident: tt) $($other:tt) *) =>
         (
             match $args {
                 Expr::Cons(ref hd, ref tl) => {
@@ -139,7 +150,7 @@ macro_rules! gen_match {
 
 #[macro_export]
 macro_rules! get_args {
-    ($args: expr, ($var: ident, $ident: tt) $($other:tt) *) =>
+    ($args: expr, ($var: pat, $ident: tt) $($other:tt) *) =>
         (
             let gen_pattern!(($var, $ident) $($other)*) = gen_match!($args, ($var, $ident) $($other)*)
             ) ;
@@ -195,6 +206,16 @@ fn bind_names(mut env: &mut Env, params: Expr, args: Expr) -> Result<(), String>
 }
 
 
+fn k_car(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+    get_args!(args, ((car, _), cons));
+    Ok(car)
+}
+
+fn k_cdr(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+    get_args!(args, ((_, cdr), cons));
+    Ok(cdr)
+
+}
 fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Result<Expr, String> {
     match f {
         &Expr::FLambda(prim) => {
@@ -205,8 +226,11 @@ fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Result<Expr, String> {
                 Prim::Mul => k_mul(env, args),
                 Prim::Concat => k_concat(env, args),
                 Prim::Funcall => k_funcall(env, args),
+                Prim::Car => k_car(env, args),
+                Prim::Cdr => k_cdr(env, args),
                 Prim::CurrentTimeString => skk::k_current_time_string(env, args),
-                Prim::SkkCalc => skk::k_skk_calc(env, args)
+                Prim::SkkCalc => skk::k_skk_calc(env, args),
+                Prim::SkkGadgetUnitsConversion  =>  skk::k_skk_gadget_units_conversion(env, args)
             }
         },
         &Expr::Lambda(ref params, ref body) => {
@@ -270,8 +294,11 @@ fn feval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
                         "*" =>Prim:: Mul,
                         "concat" => Prim::Concat,
                         "funcall" => Prim::Funcall,
+                        "car" => Prim::Car,
+                        "cdr" => Prim::Cdr,
                         "current-time-string" => Prim::CurrentTimeString,
                         "skk-calc" => Prim::SkkCalc,
+                        "skk-gadget-units-conversion" =>  Prim::SkkGadgetUnitsConversion,
                         _ => return Err(format!("function {:?} not found", sym))
                     };
                     Ok(Expr::FLambda(prim))
