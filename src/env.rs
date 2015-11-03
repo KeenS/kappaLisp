@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 use std::collections::LinkedList;
 
-use expr::Expr;
+use expr::{Expr, Proc, Prim};
 
 
 pub struct Env {
     global: HashMap<String, Expr>,
     local: LinkedList<HashMap<String, Expr>>,
-    fglobal: HashMap<String, Expr>,
-    flocal: LinkedList<HashMap<String, Expr>>,
+    fglobal: HashMap<String, Proc>,
+    flocal: LinkedList<HashMap<String, Proc>>,
     // pglobal: HashMap<String, Box<Fn(&mut Env, Expr) -> Result<Expr, String>>>,
     // plocal: LinkedList<HashMap<String, Box<Fn(&mut Env, Expr) -> Result<Expr, String>>>>,
 }
@@ -16,14 +16,26 @@ pub struct Env {
 
 impl Env {
     pub fn new() -> Env {
-        Env {
+        let mut env = Env {
             global: HashMap::new(),
             local: LinkedList::new(),
             fglobal: HashMap::new(),
             flocal: LinkedList::new()
             // pglobal: HashMap::new(),
             // plocal: LinkedList::new()
-        }
+        };
+        env.fregister("+".to_string(), Proc::Prim(Prim::Add));
+        env.fregister("-".to_string(), Proc::Prim(Prim::Sub));
+        env.fregister("/".to_string(), Proc::Prim(Prim::Div));
+        env.fregister("*".to_string(), Proc::Prim(Prim:: Mul));
+        env.fregister("concat".to_string(), Proc::Prim(Prim::Concat));
+        env.fregister("funcall".to_string(), Proc::Prim(Prim::Funcall));
+        env.fregister("car".to_string(), Proc::Prim(Prim::Car));
+        env.fregister("cdr".to_string(), Proc::Prim(Prim::Cdr));
+        env.fregister("current-time-string".to_string(), Proc::Prim(Prim::CurrentTimeString));
+        env.fregister("skk-calc".to_string(), Proc::Prim(Prim::SkkCalc));
+        env.fregister("skk-gadget-units-conversion".to_string(),  Proc::Prim(Prim::SkkGadgetUnitsConversion));
+        env
     }
     pub fn new_local(&mut self) {
         self.local.push_front(HashMap::new());
@@ -44,7 +56,7 @@ impl Env {
         };
     }
 
-    pub fn fregister(&mut self, name: String, value: Expr) {
+    pub fn fregister(&mut self, name: String, value: Proc) {
         match self.flocal.front_mut() {
             Some(l) => l.insert(name, value),
             None => self.fglobal.insert(name, value)
@@ -71,7 +83,7 @@ impl Env {
         }
     }
 
-    pub fn ffind(&self, name: &String)  -> Result<&Expr, String> {
+    pub fn ffind(&self, name: &String)  -> Result<&Proc, String> {
         for m in self.flocal.iter() {
             match m.get(name) {
                 Some(v) => return Ok(v),

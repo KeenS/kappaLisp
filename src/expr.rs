@@ -9,9 +9,14 @@ pub enum Expr {
     Nil,
     Sym(String),
     Str(String),
-    Lambda(Rc<Expr>, Rc<Expr>),
-    FLambda(Prim),
+    Proc(Proc),
     EOF
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Proc {
+    Lambda(Rc<Expr>, Rc<Expr>),
+    Prim(Prim)
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
@@ -66,9 +71,17 @@ impl fmt::Display for Expr {
             Expr::Nil => write!(f, "nil"),
             Expr::Sym(ref s) => write!(f, "{}", s),
             Expr::Str(ref s) => write!(f, "\"{}\"", s),
-            Expr::Lambda(args, body) => write!(f, "(lambda {} {})", args, body),
-            Expr::FLambda(prim) => write!(f, "{}", prim),
+            Expr::Proc(p) => write!(f, "{}", p),
             Expr::EOF => write!(f, "<EOF>")
+        }
+    }
+}
+
+impl fmt::Display for Proc {
+    fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+        match self.clone() {
+            Proc::Lambda(args, body) => write!(f, "(lambda {} {})", args, body),
+            Proc::Prim(prim) => write!(f, "{}", prim)
         }
     }
 }

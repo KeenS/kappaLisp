@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr,Prim};
+use expr::{Expr,Prim, Proc};
 use env::Env;
 use read::read;
 use skk;
@@ -180,7 +180,10 @@ fn k_concat(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
 
 fn k_funcall(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     match args {
-        Expr::Cons(f, args) => funcall(env, f.deref(), args.deref().clone()),
+        Expr::Cons(f, args) => match f.deref() {
+            &Expr::Proc(ref f) => funcall(env, f , args.deref().clone()),
+            f => Err(format!("{} is not a function", f))
+        },
         args => Err(format!("illeagal form of funcall {:?}", args))
     }
 }
@@ -216,9 +219,9 @@ fn k_cdr(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     Ok(cdr)
 
 }
-fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Result<Expr, String> {
+fn funcall(mut env: &mut Env, f: &Proc, args: Expr) -> Result<Expr, String> {
     match f {
-        &Expr::FLambda(prim) => {
+        &Proc::Prim(prim) => {
             match prim {
                 Prim::Add => k_add(env, args),
                 Prim::Sub => k_sub(env, args),
@@ -233,14 +236,13 @@ fn funcall(mut env: &mut Env, f: &Expr, args: Expr) -> Result<Expr, String> {
                 Prim::SkkGadgetUnitsConversion  =>  skk::k_skk_gadget_units_conversion(env, args)
             }
         },
-        &Expr::Lambda(ref params, ref body) => {
+        &Proc::Lambda(ref params, ref body) => {
             env.new_local();
             try!(bind_names(env, params.deref().clone(), args));
             let ret = eval(env, body.deref().clone());
             env.end_local();
             ret
-        },
-        f => Err(format!("{:?} is not a function", f))
+        }
     }
 }
 
@@ -253,17 +255,22 @@ fn k_quote(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
 
 fn k_feval(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     match args {
-        Expr::Cons(ref car, ref nil) => feval(env, car.deref().clone()),
+        Expr::Cons(ref car, ref nil) => Ok(Expr::Proc(try!(feval(env, car.deref().clone())))),
+        _ => Err(format!("unreachable"))
+    }
+}
+
+fn f_lambda(mut env: &mut Env, args: Expr) -> Result<Proc, String> {
+    match args {
+        Expr::Cons(params, body) => Ok(Proc::Lambda(params, Rc::new(Expr::Cons(Rc::new(Expr::Sym("progn".to_string())), body)))),
         _ => Err(format!("unreachable"))
     }
 }
 
 fn k_lambda(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    match args {
-        Expr::Cons(params, body) => Ok(Expr::Lambda(params, Rc::new(Expr::Cons(Rc::new(Expr::Sym("progn".to_string())), body)))),
-        _ => Err(format!("unreachable"))
-    }
+    Ok(Expr::Proc(try!(f_lambda(env, args))))
 }
+
 
 fn k_progn(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     let mut head = &args;
@@ -281,41 +288,25 @@ fn k_progn(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     Ok(res)
 }
 
-fn feval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
+fn feval(mut env: &mut Env, expr: Expr) -> Result<Proc, String> {
     match expr {
         Expr::Sym(ref sym) => {
             match env.ffind(sym) {
                 Ok(f) => Ok(f.clone()),
-                Err(_) => {
-                    let prim = match &sym[..] {
-                        "+" => Prim::Add,
-                        "-" => Prim::Sub,
-                        "/" => Prim::Div,
-                        "*" =>Prim:: Mul,
-                        "concat" => Prim::Concat,
-                        "funcall" => Prim::Funcall,
-                        "car" => Prim::Car,
-                        "cdr" => Prim::Cdr,
-                        "current-time-string" => Prim::CurrentTimeString,
-                        "skk-calc" => Prim::SkkCalc,
-                        "skk-gadget-units-conversion" =>  Prim::SkkGadgetUnitsConversion,
-                        _ => return Err(format!("function {:?} not found", sym))
-                    };
-                    Ok(Expr::FLambda(prim))
-                }
+                Err(e) => Err(e)
             }
         },
         Expr::Cons(ref op, ref rest) => {
             let op = op.deref();
             match op {
                 &Expr::Sym(ref sym) => match &sym[..] {
-                    "lambda" => k_lambda(env, rest.deref().clone()),
+                    "lambda" => f_lambda(env, rest.deref().clone()),
                     op => Err(format!("invalid expression '({:?} {:?})' found at function potision", op, rest))
                 },
                 op => Err(format!("invalid expression '({:?} {:?})' found at function potision", op, rest))
             }
         }
-        Expr::Lambda(_, _) => Ok(expr),
+        Expr::Proc(f) => Ok(f),
         x => Err(format!("{:?} is not a function", x))
     }
 }
@@ -327,8 +318,7 @@ pub fn eval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
         Expr::EOF |
         Expr::Str(_) |
         Expr::Int(_) |
-        Expr::Lambda(_, _) |
-        Expr::FLambda(_) => Ok(expr),
+        Expr::Proc(_) => Ok(expr),
         Expr::Sym(ref name) => match env.find(&name.to_string()) {
             Ok(v) =>Ok(v.clone()),
             Err(m) => Err(m)
@@ -417,8 +407,8 @@ fn test_progn(){
 
 #[test]
 fn test_lambda(){
-    assert!(eval(&mut Env::new(), read("(lambda (x) x)")) == Ok(Expr::Lambda(Rc::new(Expr::list1(Expr::Sym("x".to_string()))),
-                                                                           Rc::new(Expr::list2(Expr::Sym("progn".to_string()), Expr::Sym("x".to_string()))))));
+    assert!(eval(&mut Env::new(), read("(lambda (x) x)")) == Ok(Expr::Proc(Proc::Lambda(Rc::new(Expr::list1(Expr::Sym("x".to_string()))),
+                                                                           Rc::new(Expr::list2(Expr::Sym("progn".to_string()), Expr::Sym("x".to_string())))))));
     assert!(eval(&mut Env::new(), read("((lambda (x) (+ x x)) 1)")) == Ok(Expr::Int(2)))
 }
 
