@@ -351,71 +351,71 @@ pub fn eval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
 
 #[test]
 fn test_atom(){
-    assert!(eval(&mut Env::new(), read("1")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("()")) == Ok(Expr::Nil));
-    assert!(eval(&mut Env::new(), read("")) == Ok(Expr::EOF));
-    assert!(eval(&mut Env::new(), read("\"string\"")) == Ok(Expr::Str("string".to_string())));
+    assert_eq!(eval(&mut Env::new(), read("1")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("()")), Ok(Expr::Nil));
+    assert_eq!(eval(&mut Env::new(), read("")), Ok(Expr::EOF));
+    assert_eq!(eval(&mut Env::new(), read("\"string\"")), Ok(Expr::Str("string".to_string())));
 }
 
 #[test]
 fn test_add(){
-    assert!(eval(&mut Env::new(), read("(+)")) == Ok(Expr::Int(0)));
-    assert!(eval(&mut Env::new(), read("(+ 1)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(+ 1 2)")) == Ok(Expr::Int(3)));
-    assert!(eval(&mut Env::new(), read("(+ 1 2 3)")) == Ok(Expr::Int(6)));
+    assert_eq!(eval(&mut Env::new(), read("(+)")), Ok(Expr::Int(0)));
+    assert_eq!(eval(&mut Env::new(), read("(+ 1)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(+ 1 2)")), Ok(Expr::Int(3)));
+    assert_eq!(eval(&mut Env::new(), read("(+ 1 2 3)")), Ok(Expr::Int(6)));
 }
 
 #[test]
 fn test_sub(){
-    assert!(eval(&mut Env::new(), read("(-)")) == Ok(Expr::Int(0)));
-    assert!(eval(&mut Env::new(), read("(- 1)")) == Ok(Expr::Int(-1)));
-    assert!(eval(&mut Env::new(), read("(- 1 2)")) == Ok(Expr::Int(-1)));
-    assert!(eval(&mut Env::new(), read("(- 1 2 3)")) == Ok(Expr::Int(-4)));
+    assert_eq!(eval(&mut Env::new(), read("(-)")), Ok(Expr::Int(0)));
+    assert_eq!(eval(&mut Env::new(), read("(- 1)")), Ok(Expr::Int(-1)));
+    assert_eq!(eval(&mut Env::new(), read("(- 1 2)")), Ok(Expr::Int(-1)));
+    assert_eq!(eval(&mut Env::new(), read("(- 1 2 3)")), Ok(Expr::Int(-4)));
 }
 
 #[test]
 fn test_mul(){
-    assert!(eval(&mut Env::new(), read("(*)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(* 1)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(* 1 2)")) == Ok(Expr::Int(2)));
-    assert!(eval(&mut Env::new(), read("(* 1 2 3)")) == Ok(Expr::Int(6)));
+    assert_eq!(eval(&mut Env::new(), read("(*)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(* 1)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(* 1 2)")), Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), read("(* 1 2 3)")), Ok(Expr::Int(6)));
 }
 
 #[test]
 fn test_div(){
-    assert!(eval(&mut Env::new(), read("(/)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(/ 1)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(/ 3 2)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut Env::new(), read("(/ 3 2 1)")) == Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(/)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(/ 1)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(/ 3 2)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), read("(/ 3 2 1)")), Ok(Expr::Int(1)));
 }
 
 #[test]
 fn test_nested_arith(){
-    assert!(eval(&mut Env::new(), read("(/ (- (+ 1 (* 2 3)) 3) 2)")) == Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), read("(/ (- (+ 1 (* 2 3)) 3) 2)")), Ok(Expr::Int(2)));
 }
 
 #[test]
 fn test_concat(){
-    assert!(eval(&mut Env::new(), read("(concat \"a\" \"b\" \"cd\")")) == Ok(Expr::Str("abcd".to_string())))
+    assert_eq!(eval(&mut Env::new(), read("(concat \"a\" \"b\" \"cd\")")), Ok(Expr::Str("abcd".to_string())))
 }
 
 #[test]
 fn test_progn(){
-    assert!(eval(&mut Env::new(), read("(progn 1 2)")) == Ok(Expr::Int(2)));
-    assert!(eval(&mut Env::new(), read("(progn (+ 1 2) (+ 2 3))")) == Ok(Expr::Int(5)));
+    assert_eq!(eval(&mut Env::new(), read("(progn 1 2)")), Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), read("(progn (+ 1 2) (+ 2 3))")), Ok(Expr::Int(5)));
 }
 
 #[test]
 fn test_lambda(){
-    assert!(eval(&mut Env::new(), read("(lambda (x) x)")) == Ok(Expr::Proc(Proc::Lambda(Rc::new(Expr::list1(Expr::Sym("x".to_string()))),
+    assert_eq!(eval(&mut Env::new(), read("(lambda (x) x)")), Ok(Expr::Proc(Proc::Lambda(Rc::new(Expr::list1(Expr::Sym("x".to_string()))),
                                                                            Rc::new(Expr::list2(Expr::Sym("progn".to_string()), Expr::Sym("x".to_string())))))));
-    assert!(eval(&mut Env::new(), read("((lambda (x) (+ x x)) 1)")) == Ok(Expr::Int(2)))
+    assert_eq!(eval(&mut Env::new(), read("((lambda (x) (+ x x)) 1)")), Ok(Expr::Int(2)))
 }
 
 
 #[test]
 fn test_funcall(){
-    assert!(eval(&mut Env::new(), read("(funcall #'+ 1 2)")) == Ok(Expr::Int(3)));
-    assert!(eval(&mut Env::new(), read("(funcall #'(lambda (x y) (* x y)) 1 2)")) == Ok(Expr::Int(2)));
-    assert!(eval(&mut Env::new(), read("(funcall (lambda (x y) (* x y)) 1 2)")) == Ok(Expr::Int(2)))
+    assert_eq!(eval(&mut Env::new(), read("(funcall #'+ 1 2)")), Ok(Expr::Int(3)));
+    assert_eq!(eval(&mut Env::new(), read("(funcall #'(lambda (x y) (* x y)) 1 2)")), Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), read("(funcall (lambda (x y) (* x y)) 1 2)")), Ok(Expr::Int(2)))
 }

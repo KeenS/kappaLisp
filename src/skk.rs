@@ -53,8 +53,8 @@ fn test_skk_calc(){
     let mut env = Env::new();
     env.register("skk-num-list".to_string(), Expr::list2(Expr::Int(3), Expr::Int(2)));
     println!("{:?}", eval(&mut Env::new(), read("(skk-calc '+)")));
-    assert!(eval(&mut env, read("(skk-calc '+)")) == Ok(Expr::Int(5)));
-    assert!(eval(&mut env, read("(skk-calc '-)")) == Ok(Expr::Int(1)));
-    assert!(eval(&mut env, read("(skk-calc '*)")) == Ok(Expr::Int(6)));
-    assert!(eval(&mut env, read("(skk-calc '/)")) == Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut env, read("(skk-calc '+)")), Ok(Expr::Int(5)));
+    assert_eq!(eval(&mut env, read("(skk-calc '-)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut env, read("(skk-calc '*)")), Ok(Expr::Int(6)));
+    assert_eq!(eval(&mut env, read("(skk-calc '/)")), Ok(Expr::Int(1)));
 }

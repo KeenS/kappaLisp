@@ -171,58 +171,58 @@ pub fn read(s: &str) -> Expr {
 
 #[test]
 fn test_read_empty(){
-    assert!(read("") == (Expr::EOF));
-    assert!(read("(a b") == (Expr::EOF));
+    assert_eq!(read(""), (Expr::EOF));
+    assert_eq!(read("(a b"), (Expr::EOF));
 }
 
 #[test]
 fn test_read_int() {
-    assert!(read("0") == (Expr::Int(0)));
-    assert!(read("10") == (Expr::Int(10)));
-    assert!(read("-10") == (Expr::Int(-10)));
-    assert!(read("+10") == (Expr::Int(10)));
+    assert_eq!(read("0"), (Expr::Int(0)));
+    assert_eq!(read("10"), (Expr::Int(10)));
+    assert_eq!(read("-10"), (Expr::Int(-10)));
+    assert_eq!(read("+10"), (Expr::Int(10)));
 }
 
 #[test]
 fn test_read_list(){
-    assert!(read("()") == (Expr::Nil));
-    assert!(read("(1)") == (Expr::cons(Expr::Int(1), Expr::Nil)));
-    assert!(read("(1 2)") == (Expr::cons(Expr::Int(1), Expr::cons(Expr::Int(2),Expr::Nil))));
+    assert_eq!(read("()"), (Expr::Nil));
+    assert_eq!(read("(1)"), (Expr::cons(Expr::Int(1), Expr::Nil)));
+    assert_eq!(read("(1 2)"), (Expr::cons(Expr::Int(1), Expr::cons(Expr::Int(2),Expr::Nil))));
 }
 
 
 #[test]
 fn test_read_symbol(){
-    assert!(read("symbol") == (Expr::Sym("symbol".to_string())));
-    assert!(read("+symbol") == (Expr::Sym("+symbol".to_string())));
-    assert!(read("-symbol") == (Expr::Sym("-symbol".to_string())));
-    assert!(read("sym-bol") == (Expr::Sym("sym-bol".to_string())));
-    assert!(read("symbol2") == (Expr::Sym("symbol2".to_string())));
+    assert_eq!(read("symbol"), (Expr::Sym("symbol".to_string())));
+    assert_eq!(read("+symbol"), (Expr::Sym("+symbol".to_string())));
+    assert_eq!(read("-symbol"), (Expr::Sym("-symbol".to_string())));
+    assert_eq!(read("sym-bol"), (Expr::Sym("sym-bol".to_string())));
+    assert_eq!(read("symbol2"), (Expr::Sym("symbol2".to_string())));
 }
 
 
 #[test]
 fn test_read_string(){
-    assert!(read("\"string\"") == (Expr::Str("string".to_string())));
-    assert!(read("\"str()ing\"") == (Expr::Str("str()ing".to_string())));
-    assert!(read("\"str123ing\"") == (Expr::Str("str123ing".to_string())));
-    assert!(read("\"()string\"") == (Expr::Str("()string".to_string())));
-    assert!(read("\"123string\"") == (Expr::Str("123string".to_string())));
-    assert!(read("(\"string\")") == (Expr::list1(Expr::Str("string".to_string()))));
+    assert_eq!(read("\"string\""), (Expr::Str("string".to_string())));
+    assert_eq!(read("\"str()ing\""), (Expr::Str("str()ing".to_string())));
+    assert_eq!(read("\"str123ing\""), (Expr::Str("str123ing".to_string())));
+    assert_eq!(read("\"()string\""), (Expr::Str("()string".to_string())));
+    assert_eq!(read("\"123string\""), (Expr::Str("123string".to_string())));
+    assert_eq!(read("(\"string\")"), (Expr::list1(Expr::Str("string".to_string()))));
 }
 
 #[test]
 fn test_read_quote(){
-    assert!(read("'1") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::Int(1))));
-    assert!(read("'symbol") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::Sym("symbol".to_string()))));
-    assert!(read("'\"string\"") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::Str("string".to_string()))));
-    assert!(read("'(1 2)") == (Expr::list2(Expr::Sym("quote".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
+    assert_eq!(read("'1"), (Expr::list2(Expr::Sym("quote".to_string()), Expr::Int(1))));
+    assert_eq!(read("'symbol"), (Expr::list2(Expr::Sym("quote".to_string()), Expr::Sym("symbol".to_string()))));
+    assert_eq!(read("'\"string\""), (Expr::list2(Expr::Sym("quote".to_string()), Expr::Str("string".to_string()))));
+    assert_eq!(read("'(1 2)"), (Expr::list2(Expr::Sym("quote".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
 }
 
 #[test]
 fn test_read_function(){
-    assert!(read("#'1") == (Expr::list2(Expr::Sym("function".to_string()), Expr::Int(1))));
-    assert!(read("#'symbol") == (Expr::list2(Expr::Sym("function".to_string()), Expr::Sym("symbol".to_string()))));
-    assert!(read("#'\"string\"") == (Expr::list2(Expr::Sym("function".to_string()), Expr::Str("string".to_string()))));
-    assert!(read("#'(1 2)") == (Expr::list2(Expr::Sym("function".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
+    assert_eq!(read("#'1"), (Expr::list2(Expr::Sym("function".to_string()), Expr::Int(1))));
+    assert_eq!(read("#'symbol"), (Expr::list2(Expr::Sym("function".to_string()), Expr::Sym("symbol".to_string()))));
+    assert_eq!(read("#'\"string\""), (Expr::list2(Expr::Sym("function".to_string()), Expr::Str("string".to_string()))));
+    assert_eq!(read("#'(1 2)"), (Expr::list2(Expr::Sym("function".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
 }
