@@ -79,7 +79,7 @@ impl Env {
         };
         match self.global.get(name) {
             Some(v) => Ok(v),
-            None => Err(format!("Variable {:} ist't bound", name))
+            None => Err(format!("Variable {:} isn't bound", name))
         }
     }
 
@@ -92,7 +92,7 @@ impl Env {
         };
         match self.fglobal.get(name) {
             Some(v) => Ok(v),
-            None => Err(format!("Variable {:} ist't bound", name))
+            None => Err(format!("Function {:} isn't bound", name))
         }
     }
 
