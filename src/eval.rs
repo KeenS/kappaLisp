@@ -114,11 +114,13 @@ macro_rules! get_args_one {
             hd => Err(format!("cons expected but got {:?}", hd))
         }
     };
-    ($v:expr, any) => {
+    ($v:expr, any) => {{
         match $v {
-            hd => Ok(hd.clone())
-        }
-    }
+            hd => return Ok(hd.clone())
+        };
+        // This clause is needed because Rust cannot infer Result<Expr, _>.
+        Err("unreachable")
+    }}
 }
 
 macro_rules! gen_pattern {
@@ -247,10 +249,8 @@ fn funcall(mut env: &mut Env, f: &Proc, args: Expr) -> Result<Expr, String> {
 }
 
 fn k_quote(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    match args {
-        Expr::Cons(ref car, ref nil) => Ok(car.deref().clone()),
-        _ => Err(format!("unreachable"))
-    }
+    get_args!(args, (sexp, any));
+    Ok(sexp)
 }
 
 fn k_feval(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
