@@ -1,7 +1,7 @@
-extern crate kappaLisp;
-use kappaLisp::env::Env;
-use kappaLisp::read::read;
-use kappaLisp::eval::eval;
+extern crate kappa_lisp;
+use kappa_lisp::env::Env;
+use kappa_lisp::read::read;
+use kappa_lisp::eval::eval;
 
 
 fn main() {

@@ -4,7 +4,7 @@ use std::ops::Deref;
 use expr::{Expr,Prim, Proc};
 use env::Env;
 use skk;
-#[test]
+#[cfg(test)]
 use read::read;
 
 fn f_foldl<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String>

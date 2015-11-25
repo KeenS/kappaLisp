@@ -5,9 +5,9 @@ use std::ops::Deref;
 
 use expr::Expr;
 use env::Env;
-#[test]
+#[cfg(test)]
 use read::read;
-#[test]
+#[cfg(test)]
 use eval::eval;
 
 pub fn k_current_time_string(_: &mut Env, args: Expr) -> Result<Expr, String> {
