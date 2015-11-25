@@ -5,7 +5,7 @@ use kappaLisp::eval::eval;
 
 
 fn main() {
-    let env = &mut kappaLisp::env::Env::new();
+    let env = &mut Env::new();
     let expr = read("(current-time-string)");
     let expr_ = eval(env, expr).unwrap();
     println!("{}", expr_);

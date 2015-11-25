@@ -3,8 +3,9 @@ use std::ops::Deref;
 
 use expr::{Expr,Prim, Proc};
 use env::Env;
-use read::read;
 use skk;
+#[test]
+use read::read;
 
 fn f_foldl<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String>
     where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>{
@@ -47,7 +48,7 @@ fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String>
 
 fn f_iter<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String>
     where F: Fn(&mut Env, Expr) -> Result<(), String>{
-    f_foldr(env, &|env, acc, x| {try!(f(env,x.clone())); Ok(Expr::Nil)}
+    f_foldr(env, &|env, _, x| {try!(f(env,x.clone())); Ok(Expr::Nil)}
                  , Expr::Nil, list)
 }
 
@@ -174,12 +175,6 @@ macro_rules! get_args {
 }
 
 
-fn k_double(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    get_args!(args, (x, int));
-    Ok(Expr::Int(x*2))
-}
-
-
 fn k_concat(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     f_foldl(env, &|_, acc, x| match (acc, x) {
         (Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(Expr::Str(format!("{}{}",acc, x))),
@@ -220,12 +215,12 @@ fn bind_names(mut env: &mut Env, params: Expr, args: Expr) -> Result<(), String>
 }
 
 
-fn k_car(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_car(_: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(args, ((car, _), cons));
     Ok(car)
 }
 
-fn k_cdr(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_cdr(_: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(args, ((_, cdr), cons));
     Ok(cdr)
 
@@ -257,19 +252,19 @@ fn funcall(mut env: &mut Env, f: &Proc, args: Expr) -> Result<Expr, String> {
     }
 }
 
-fn k_quote(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_quote(_: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(args, (sexp, any));
     Ok(sexp)
 }
 
 fn k_feval(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     match args {
-        Expr::Cons(ref car, ref nil) => Ok(Expr::Proc(try!(feval(env, car.deref().clone())))),
+        Expr::Cons(ref car, _) => Ok(Expr::Proc(try!(feval(env, car.deref().clone())))),
         _ => Err(format!("unreachable"))
     }
 }
 
-fn f_lambda(mut env: &mut Env, args: Expr) -> Result<Proc, String> {
+fn f_lambda(_: &mut Env, args: Expr) -> Result<Proc, String> {
     match args {
         Expr::Cons(params, body) => Ok(Proc::Lambda(params, Rc::new(Expr::Cons(Rc::new(Expr::Sym("progn".to_string())), body)))),
         _ => Err(format!("unreachable"))
@@ -304,7 +299,6 @@ fn k_fset(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(Expr::cons(s, Expr::Nil), (s, sym));
     env.fregister(s, f);
     return Ok(Expr::Nil);
-    Err("unreachable".to_string())
 }
 
 fn k_if(mut env: &mut Env, args: Expr) -> Result<Expr, String> {

@@ -1,6 +1,5 @@
 use std::str::Chars;
 use std::iter::Peekable;
-use std::rc::Rc;
 
 use mdo::option::{bind, ret};
 use expr::Expr;
@@ -24,7 +23,7 @@ fn is_delimiter(c: char) -> bool {
 
 fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
     let mut acc = String::new();
-    let mut c = first;
+    let mut c;
     acc.push(first);
     while input.peek().unwrap_or(&' ').is_digit(radix) {
         match input.next() {
@@ -81,10 +80,10 @@ fn read_hyphen(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
 }
 
-fn read_string(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+fn read_string(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let mut string = String::new();
     // :TODO: treat escapes
-    while true {
+    loop {
         match input.next() {
             Some(c) => match c == '"' {
                 true =>  return Some(Expr::Str(string)),
@@ -93,11 +92,9 @@ fn read_string(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
             None => return None
         } 
     };
-    // to make compiler happy
-    None
 }
 
-fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let c = next_nonwhitespaces(input, ' ');
     let car =  match c {
         Some(c) => match c {
@@ -108,7 +105,7 @@ fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     };
     match input.peek() {
         None => return None,
-        Some(c) => ()
+        Some(_) => ()
     }
     let cdr = read_list(input, '(');
     match (car, cdr) {
@@ -118,21 +115,21 @@ fn read_list(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
         
 }
 
-fn read_quote(mut input: &mut Peekable<Chars>, first: char)  -> Option<Expr> {
+fn read_quote(mut input: &mut Peekable<Chars>, _: char)  -> Option<Expr> {
     mdo!{
         v =<< read_aux(input, ' ');
         ret ret(Expr::list2(Expr::Sym("quote".to_string()), v))
     }
 }
 
-fn read_function(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+fn read_function(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     mdo!{
         v =<< read_aux(input, ' ');
         ret ret(Expr::list2(Expr::Sym("function".to_string()), v))
     }    
 }
 
-fn read_dispatch(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+fn read_dispatch(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     mdo!{
         v =<< input.next();
         ret match v {

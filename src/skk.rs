@@ -1,15 +1,16 @@
 extern crate time;
 
-use std::rc::Rc;
 use std::ops::Deref;
 
 
 use expr::Expr;
-use read::read;
 use env::Env;
+#[test]
+use read::read;
+#[test]
 use eval::eval;
 
-pub fn k_current_time_string(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+pub fn k_current_time_string(_: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(args);
     let now = time::now();
     Ok(Expr::Str(format!("{}", now.ctime())))
@@ -29,7 +30,7 @@ pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     Ok(Expr::Int(res))
 }
 
-pub fn k_skk_gadget_units_conversion(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+pub fn k_skk_gadget_units_conversion(_: &mut Env, args: Expr) -> Result<Expr, String> {
     get_args!(args, (base_unit, str) (v, int) (target_unit, str));
     // (* v (cdr (assoc target_unit (cdr (assoc base skk-units-alist)))))
     // ("mile" ("km" . 1.6093)
