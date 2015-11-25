@@ -4,7 +4,6 @@ use std::rc::Rc;
 use std::ops::Deref;
 
 
-#[macro_use]
 use expr::Expr;
 use read::read;
 use env::Env;
@@ -31,7 +30,7 @@ pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
 }
 
 pub fn k_skk_gadget_units_conversion(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
-    get_args!(args, (base_unit, sym) (v, int) (target_unit, sym));
+    get_args!(args, (base_unit, str) (v, int) (target_unit, str));
     // (* v (cdr (assoc target_unit (cdr (assoc base skk-units-alist)))))
     // ("mile" ("km" . 1.6093)
     //         ("yard" . 1760))
@@ -51,6 +50,7 @@ pub fn k_skk_gadget_units_conversion(mut env: &mut Env, args: Expr) -> Result<Ex
 #[test]
 fn test_skk_calc(){
     let mut env = Env::new();
+    env.init();
     env.register("skk-num-list".to_string(), Expr::list2(Expr::Int(3), Expr::Int(2)));
     println!("{:?}", eval(&mut Env::new(), read("(skk-calc '+)")));
     assert_eq!(eval(&mut env, read("(skk-calc '+)")), Ok(Expr::Int(5)));

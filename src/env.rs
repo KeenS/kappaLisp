@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::collections::LinkedList;
 
 use expr::{Expr, Proc, Prim};
-
+use read::read;
+use eval::eval;
 
 pub struct Env {
     global: HashMap<String, Expr>,
@@ -37,6 +38,13 @@ impl Env {
         env.fregister("skk-gadget-units-conversion".to_string(),  Proc::Prim(Prim::SkkGadgetUnitsConversion));
         env
     }
+
+    pub fn init(&mut self) -> Result<(), String>{
+        let mut env = Self::new();
+        try!(eval(&mut env, read(include_str!("assoc.lisp"))));
+        Ok(())
+    }
+
     pub fn new_local(&mut self) {
         self.local.push_front(HashMap::new());
         self.flocal.push_front(HashMap::new());
@@ -90,6 +98,7 @@ impl Env {
                 None => ()
             }
         };
+        println!("{:?}", self.fglobal);
         match self.fglobal.get(name) {
             Some(v) => Ok(v),
             None => Err(format!("Function {:} isn't bound", name))
