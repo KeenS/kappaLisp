@@ -84,43 +84,52 @@ def_arith_op!(k_mul, *, Expr::Int(1));
 def_arith_op!(k_div, /, Expr::Int(1));
 
 macro_rules! get_args_one {
-    ($v:expr, int) => {
+    ($v:expr, int) => (
         match $v {
             &Expr::Int(x) => Ok(x.clone()),
             hd => Err(format!("nil expected but got {:?}", hd))
         }
-    };
-    ($v:expr, str) => {
+    );
+    ($v:expr, str) => (
         match $v {
             &Expr::Str(ref x) => Ok(x.clone()),
             hd => Err(format!("string expected but got {:?}", hd))
         }
-    };
-    ($v:expr, sym) => {
+    );
+    ($v:expr, sym) => (
         match $v {
             &Expr::Sym(ref x) => Ok(x.clone()),
             hd => Err(format!("symbol expected but got {:?}", hd))
         }
-    };
-    ($v:expr, nil) => {
+    );
+    ($v:expr, nil) => (
         match $v {
             &Expr::Int(x) => Ok(x.clone()),
             hd => Err(format!("nil expected but got {:?}", hd))
         }
-    };
-    ($v:expr, cons) => {
+    );
+    ($v:expr, cons) => (
         match $v {
             &Expr::Cons(ref car, ref cdr) => Ok((car.deref().clone(), cdr.deref().clone())),
             hd => Err(format!("cons expected but got {:?}", hd))
         }
-    };
-    ($v:expr, any) => {{
+    );
+    ($v:expr, fun) => (
         match $v {
-            hd => return Ok(hd.clone())
+            &Expr::Proc(ref p) => Ok(p.deref().clone()),
+            hd => Err(format!("function expected but got {:?}", hd))
+        }
+    );
+    ($v:expr, any) => (
+        match $v {
+            hd => if true {
+                Ok(hd.clone())
+            } else {
+                // This is needed to let rust compiler infer the result type.
+                Err("unreachable")
+            }
         };
-        // This clause is needed because Rust cannot infer Result<Expr, _>.
-        Err("unreachable")
-    }}
+    )
 }
 
 macro_rules! gen_pattern {
@@ -138,7 +147,7 @@ macro_rules! gen_match {
                     let v = try!(get_args_one!(hd.deref(), $ident));
                     (v, gen_match!(tl.deref().clone(), $($other)*))
                 },
-                Expr::Nil => return Err(format!("shorting number of arguments")),
+                Expr::Nil => return Err(format!(")shorting number of arguments")),
                 args => return Err(format!("invalid argument {} to function call", args))
             };
             );
@@ -288,6 +297,27 @@ fn k_progn(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     Ok(res)
 }
 
+fn k_fset(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+    get_args!(args, (s, any) (f, any));
+    let s = try!(eval(env, s));
+    let f = try!(feval(env, f));
+    get_args!(Expr::cons(s, Expr::Nil), (s, sym));
+    env.fregister(s, f);
+    return Ok(Expr::Nil);
+    Err("unreachable".to_string())
+}
+
+fn k_if(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+    // TODO: optional else clasue. Need optional argments.
+    get_args!(args, (cnd, any) (thn, any) (els, any));
+    let res = try!(eval(env, cnd));
+    if res != Expr::Nil {
+        eval(env, thn)
+    } else {
+        eval(env, els)
+    }
+}
+
 fn feval(mut env: &mut Env, expr: Expr) -> Result<Proc, String> {
     match expr {
         Expr::Sym(ref sym) => {
@@ -332,6 +362,8 @@ pub fn eval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
                     "function" => k_feval(env, cdr.clone()),
                     "lambda" => k_lambda(env, cdr.clone()),
                     "progn" => k_progn(env, cdr.clone()),
+                    "fset" => k_fset(env, cdr.clone()),
+                    "if" => k_if(env, cdr.clone()),
                     _ => {
                         let f = try!(feval(env, car.clone()));
                         let arg = try!(f_map(env, &|env, x| eval(env, x), cdr));
@@ -418,4 +450,11 @@ fn test_funcall(){
     assert_eq!(eval(&mut Env::new(), read("(funcall #'+ 1 2)")), Ok(Expr::Int(3)));
     assert_eq!(eval(&mut Env::new(), read("(funcall #'(lambda (x y) (* x y)) 1 2)")), Ok(Expr::Int(2)));
     assert_eq!(eval(&mut Env::new(), read("(funcall (lambda (x y) (* x y)) 1 2)")), Ok(Expr::Int(2)))
+}
+
+#[test]
+fn test_fset(){
+    let mut env = Env::new();
+    assert_eq!(eval(&mut env, read("(fset 'add2 (lambda (x) (+ x 2)))")), Ok(Expr::Nil));
+    assert_eq!(eval(&mut env, read("(add2 2)")), Ok(Expr::Int(4)));
 }
