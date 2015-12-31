@@ -33,23 +33,8 @@ fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
 
 pub fn funcall(mut env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
     match f {
-        &Proc::Prim(prim) => {
-            match prim {
-                Prim::Add => k_add(env, args),
-                Prim::Sub => k_sub(env, args),
-                Prim::Div => k_div(env, args),
-                Prim::Mul => k_mul(env, args),
-                Prim::Concat => k_concat(env, args),
-                Prim::Funcall => k_funcall(env, args),
-                Prim::Cons => k_cons(env, args),
-                Prim::Car => k_car(env, args),
-                Prim::Cdr => k_cdr(env, args),
-                Prim::List => k_list(env, args),
-                Prim::EqualP => k_equal_p(env, args),
-                Prim::StringToNumber => k_string_to_number(env, args),
-                Prim::CurrentTimeString => k_current_time_string(env, args),
-                Prim::SkkCalc => skk::k_skk_calc(env, args),
-            }
+        &Proc::Prim(_, ref f) => {
+            f(env, args)
         },
         &Proc::Lambda(ref params, ref body) => {
             env.new_local();

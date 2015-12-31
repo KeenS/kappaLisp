@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::fmt;
+use env::{Env, Result};
 
 pub type Kfloat = f32;
 
@@ -27,11 +28,29 @@ pub enum Type {
     Any
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Clone)]
 pub enum Proc {
     Lambda(Rc<Expr>, Rc<Expr>),
-    Prim(Prim)
+    Prim(String, Rc<Fn(&mut Env, &Expr) -> Result<Expr>>)
 }
+
+impl PartialEq for Proc {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (&Proc::Lambda(ref param1, ref body1), &Proc::Lambda(ref param2, ref body2)) => param1 == param2 && body1 == body2,
+            _ => false
+        }
+    }
+}
+
+impl fmt::Debug for Proc {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Proc::Lambda(ref param, ref body) => write!(f, "Lambda({}, {})", param, body),
+            &Proc::Prim(ref name, _) => write!(f, "Prim(#<native function {}>)", name)
+        }
+    }
+} 
 
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
 pub enum Prim {
@@ -89,7 +108,7 @@ impl fmt::Display for Proc {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
         match self.clone() {
             Proc::Lambda(args, body) => write!(f, "(lambda {} {})", args, body),
-            Proc::Prim(prim) => write!(f, "{}", prim)
+            Proc::Prim(name, _) => write!(f, "{}", name)
         }
     }
 }

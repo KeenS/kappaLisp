@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr, Type};
+use expr::{Expr, Type, Proc};
 use error::Error as E;
 use env::{Env, Result};
 
@@ -32,6 +32,9 @@ pub fn cdr(cons: &Expr) -> Result<Expr> {
 }
 
 
+pub fn procedure<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + Sized>(name: S, f: F) -> Proc{
+    Proc::Prim(name.into(), Rc::new(f))
+}
 
 
 macro_rules! get_args_one {

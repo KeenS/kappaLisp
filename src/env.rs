@@ -5,7 +5,11 @@ use expr::{Expr, Proc, Prim};
 use error::Error as E;
 use read::read_in;
 use eval::eval;
+use stdlib::*;
+use util::*;
+use skk::*;
 use std::result;
+use std::rc::Rc;
 
 
 pub type Result<T> = result::Result<T, E>;
@@ -30,20 +34,35 @@ impl Env {
             // pglobal: HashMap::new(),
             // plocal: LinkedList::new()
         };
-        env.fregister("+".to_string(), Proc::Prim(Prim::Add));
-        env.fregister("-".to_string(), Proc::Prim(Prim::Sub));
-        env.fregister("/".to_string(), Proc::Prim(Prim::Div));
-        env.fregister("*".to_string(), Proc::Prim(Prim:: Mul));
-        env.fregister("concat".to_string(), Proc::Prim(Prim::Concat));
-        env.fregister("funcall".to_string(), Proc::Prim(Prim::Funcall));
-        env.fregister("cons".to_string(), Proc::Prim(Prim::Cons));
-        env.fregister("car".to_string(), Proc::Prim(Prim::Car));
-        env.fregister("cdr".to_string(), Proc::Prim(Prim::Cdr));
-        env.fregister("list".to_string(), Proc::Prim(Prim::List));
-        env.fregister("equal?".to_string(), Proc::Prim(Prim::EqualP));
-        env.fregister("string-to-number".to_string(), Proc::Prim(Prim::StringToNumber));
-        env.fregister("current-time-string".to_string(), Proc::Prim(Prim::CurrentTimeString));
-        env.fregister("skk-calc".to_string(), Proc::Prim(Prim::SkkCalc));
+
+            //     Prim::Add => k_add(env, args),
+            //     Prim::Sub => k_sub(env, args),
+            //     Prim::Div => k_div(env, args),
+            //     Prim::Mul => k_mul(env, args),
+            //     Prim::Concat => k_concat(env, args),
+            //     Prim::Funcall => k_funcall(env, args),
+            //     Prim::Cons => k_cons(env, args),
+            //     Prim::Car => k_car(env, args),
+            //     Prim::Cdr => k_cdr(env, args),
+            //     Prim::List => k_list(env, args),
+            //     Prim::EqualP => k_equal_p(env, args),
+            //     Prim::StringToNumber => k_string_to_number(env, args),
+            //     Prim::CurrentTimeString => k_current_time_string(env, args),
+            //     Prim::SkkCalc => skk::k_skk_calc(env, args),
+        env.fregister("+", procedure("k_add".to_string(), k_add));
+        env.fregister("-", procedure("k_sub".to_string(), k_sub));
+        env.fregister("/", procedure("k_div".to_string(), k_div));
+        env.fregister("*", procedure("k_mul".to_string(), k_mul));
+        env.fregister("concat", procedure("k_concat".to_string(), k_concat));
+        env.fregister("funcall", procedure("k_funcall".to_string(), k_funcall));
+        env.fregister("cons", procedure("k_cons".to_string(), k_cons));
+        env.fregister("car", procedure("k_car".to_string(), k_car));
+        env.fregister("cdr", procedure("k_cdr".to_string(), k_cdr));
+        env.fregister("list", procedure("k_list".to_string(),k_list));
+        env.fregister("equal?", procedure("k_equal_p".to_string(), k_equal_p));
+        env.fregister("string-to-number", procedure("k_string_to_number",k_string_to_number));
+        env.fregister("current-time-string", procedure("k_current_time_string", k_current_time_string));
+        env.fregister("skk-calc", procedure("k_skk_calc", k_skk_calc));
         env
     }
 
@@ -68,17 +87,17 @@ impl Env {
         // self.plocal.pop_front();
     }
 
-    pub fn register(&mut self, name: String, value: Expr) {
+    pub fn register<S: Into<String>>(&mut self, name: S, value: Expr) {
         match self.local.front_mut() {
-            Some(l) => l.insert(name, value),
-            None => self.global.insert(name, value)
+            Some(l) => l.insert(name.into(), value),
+            None => self.global.insert(name.into(), value)
         };
     }
 
-    pub fn fregister(&mut self, name: String, value: Proc) {
+    pub fn fregister<S: Into<String>>(&mut self, name: S, value: Proc) {
         match self.flocal.front_mut() {
-            Some(l) => l.insert(name, value),
-            None => self.fglobal.insert(name, value)
+            Some(l) => l.insert(name.into(), value),
+            None => self.fglobal.insert(name.into(), value)
         };
     }
 
