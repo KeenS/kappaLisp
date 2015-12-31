@@ -4,5 +4,4 @@ version = "0.1.0"
 authors = ["Sunrim KIM (keen) <3han5chou7@gmail.com>"]
 
 [dependencies]
-mdo = "*"
 time = "0.1"
