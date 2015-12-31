@@ -121,6 +121,7 @@ fn test_add(){
     assert_eq!(eval(&mut Env::new(), &read("(+ 1)")), Ok(Expr::Int(1)));
     assert_eq!(eval(&mut Env::new(), &read("(+ 1 2)")), Ok(Expr::Int(3)));
     assert_eq!(eval(&mut Env::new(), &read("(+ 1 2 3)")), Ok(Expr::Int(6)));
+    assert_eq!(eval(&mut Env::new(), &read("(+ 1 2 3.0)")), Ok(Expr::Float(6.0)));
 }
 
 #[test]
@@ -128,14 +129,14 @@ fn test_sub(){
     assert_eq!(eval(&mut Env::new(), &read("(-)")), Ok(Expr::Int(0)));
     assert_eq!(eval(&mut Env::new(), &read("(- 1)")), Ok(Expr::Int(-1)));
     assert_eq!(eval(&mut Env::new(), &read("(- 1 2)")), Ok(Expr::Int(-1)));
-    assert_eq!(eval(&mut Env::new(), &read("(- 1 2 3)")), Ok(Expr::Int(-4)));
+    assert_eq!(eval(&mut Env::new(), &read("(- 1.0 2 3)")), Ok(Expr::Float(-4.0)));
 }
 
 #[test]
 fn test_mul(){
     assert_eq!(eval(&mut Env::new(), &read("(*)")), Ok(Expr::Int(1)));
     assert_eq!(eval(&mut Env::new(), &read("(* 1)")), Ok(Expr::Int(1)));
-    assert_eq!(eval(&mut Env::new(), &read("(* 1 2)")), Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), &read("(* 1 2.0)")), Ok(Expr::Float(2.0)));
     assert_eq!(eval(&mut Env::new(), &read("(* 1 2 3)")), Ok(Expr::Int(6)));
 }
 
@@ -144,6 +145,7 @@ fn test_div(){
     assert_eq!(eval(&mut Env::new(), &read("(/)")), Ok(Expr::Int(1)));
     assert_eq!(eval(&mut Env::new(), &read("(/ 1)")), Ok(Expr::Int(1)));
     assert_eq!(eval(&mut Env::new(), &read("(/ 3 2)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), &read("(/ 3 2.0)")), Ok(Expr::Float(1.5)));
     assert_eq!(eval(&mut Env::new(), &read("(/ 3 2 1)")), Ok(Expr::Int(1)));
 }
 
