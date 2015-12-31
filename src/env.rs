@@ -92,8 +92,7 @@ impl Env {
         };
         match self.global.get(name) {
             Some(v) => Ok(v),
-            None => //Err(format!("Variable {:} isn't bound", name))
-                Err(E::Unbound)
+            None => Err(E::Unbound(name.clone()))
         }
     }
 
@@ -107,8 +106,7 @@ impl Env {
         println!("{:?}", self.fglobal);
         match self.fglobal.get(name) {
             Some(v) => Ok(v),
-            None => //Err(format!("Function {:} isn't bound", name))
-                    Err(E::Unbound)
+            None => Err(E::Unbound(name.clone()))
         }
     }
 
