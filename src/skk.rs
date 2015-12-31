@@ -5,9 +5,9 @@ use std::ops::Deref;
 use expr::{Expr, Type};
 use error::Error as E;
 use env::{Env, Result};
+use util::*;
 
-#[cfg(test)]
-use util::list2;
+
 #[cfg(test)]
 use read::read;
 #[cfg(test)]
@@ -28,6 +28,11 @@ pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
     Ok(Expr::Int(res))
 }
 
+
+pub fn init(mut env: &mut Env) {
+    env.fregister("skk-calc", procedure("k_skk_calc", k_skk_calc));
+
+}
 
 #[test]
 fn test_skk_calc(){

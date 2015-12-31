@@ -1,12 +1,10 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr, Type, Prim, Proc};
+use expr::{Expr, Type, Proc};
 use error::Error as E;
 use env::{Env, Result};
 use util::*;
-use stdlib::*;
-use skk;
 #[cfg(test)]
 use read::read;
 

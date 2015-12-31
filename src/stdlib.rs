@@ -116,6 +116,23 @@ pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 
+pub fn init(mut env: &mut Env) {
+    env.fregister("+",       procedure("k_add", k_add));
+    env.fregister("-",       procedure("k_sub", k_sub));
+    env.fregister("/",       procedure("k_div", k_div));
+    env.fregister("*",       procedure("k_mul", k_mul));
+    env.fregister("concat",  procedure("k_concat", k_concat));
+    env.fregister("funcall", procedure("k_funcall", k_funcall));
+    env.fregister("cons",    procedure("k_cons", k_cons));
+    env.fregister("car",     procedure("k_car", k_car));
+    env.fregister("cdr",     procedure("k_cdr", k_cdr));
+    env.fregister("list",    procedure("k_list",k_list));
+    env.fregister("equal?",  procedure("k_equal_p", k_equal_p));
+    env.fregister("string-to-number", procedure("k_string_to_number", k_string_to_number));
+    env.fregister("current-time-string", procedure("k_current_time_string", k_current_time_string));
+
+}
+
 
 #[test]
 fn test_funcall(){
