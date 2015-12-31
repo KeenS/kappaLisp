@@ -111,6 +111,18 @@ pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 
+pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args, (s, Str) (start, Int) (end, Int));
+    let len = s.len();
+    if 0 <= start && start <= end && end < (len as isize) {
+        let start = start as usize;
+        let end = end as usize;
+        Ok(Expr::Str((&s[start..end]).to_string()))
+    } else {
+        Err(E::InvalidArgument(args.clone()))
+    }
+}
+
 pub fn init(mut env: &mut Env) -> Result<()>{
     env.fregister("+",       procedure("k_add", k_add));
     env.fregister("-",       procedure("k_sub", k_sub));
@@ -124,6 +136,7 @@ pub fn init(mut env: &mut Env) -> Result<()>{
     env.fregister("list",    procedure("k_list",k_list));
     env.fregister("equal?",  procedure("k_equal_p", k_equal_p));
     env.fregister("string-to-number", procedure("k_string_to_number", k_string_to_number));
+    env.fregister("substring", procedure("k_substring", k_substring));
     env.fregister("current-time-string", procedure("k_current_time_string", k_current_time_string));
     Ok(())
 }

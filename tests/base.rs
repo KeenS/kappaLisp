@@ -97,5 +97,13 @@ fn test_string_to_number() {
     assert_eq!(run_new(("(string-to-number \"1\")")), Ok(Expr::Int(1)));
 }
 
+
+#[test]
+fn test_substring() {
+    assert_eq!(run_new("(substring \"abcdefg\" 0 3)"), Ok(Expr::Str("abc".to_string())));
+    assert_eq!(run_new("(substring \"abcdefg\" 4 6)"), Ok(Expr::Str("ef".to_string())));
+}
+
+
 // TODO: test current-time-string
 
