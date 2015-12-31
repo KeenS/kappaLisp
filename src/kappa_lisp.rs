@@ -1,4 +1,4 @@
-pub use ::expr::{Result, Expr};
+pub use ::expr::{Result, Expr, Proc};
 pub use ::eval::eval;
 pub use ::env::Env;
 pub use ::read::read;

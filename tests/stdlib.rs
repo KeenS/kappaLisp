@@ -1,5 +1,5 @@
 extern crate kappa_lisp;
-use kappa_lisp::kappa_lisp::{run_new, Expr};
+use kappa_lisp::{run_new, Expr};
 
 #[test]
 fn test_assoc() {

@@ -8,3 +8,4 @@ pub mod base;
 pub mod stdlib;
 pub mod skk;
 pub mod kappa_lisp;
+pub use kappa_lisp::*;

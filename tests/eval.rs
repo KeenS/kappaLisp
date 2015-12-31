@@ -1,7 +1,6 @@
 extern crate kappa_lisp;
-use kappa_lisp::kappa_lisp::{init, run_new, run, Env};
+use kappa_lisp::{init, run_new, run, Env, Expr, Proc};
 use kappa_lisp::util::{list1, list2};
-use kappa_lisp::expr::*;
 
 use std::rc::Rc;
 

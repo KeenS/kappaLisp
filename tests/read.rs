@@ -1,5 +1,5 @@
 extern crate kappa_lisp;
-use kappa_lisp::kappa_lisp::{read, Expr};
+use kappa_lisp::{read, Expr};
 use kappa_lisp::util::{cons, list1, list2};
 
 
