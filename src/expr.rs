@@ -14,6 +14,17 @@ pub enum Expr {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Type {
+    Int,
+    Cons,
+    Nil,
+    Sym,
+    Str,
+    Proc,
+    Any
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Proc {
     Lambda(Rc<Expr>, Rc<Expr>),
     Prim(Prim)
@@ -76,6 +87,22 @@ impl fmt::Display for Expr {
         }
     }
 }
+
+impl fmt::Display for Type {
+    fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+        match self.clone() {
+            Type::Int  => write!(f, "integer"),
+            Type::Cons => write!(f, "cons"),
+            Type::Nil  => write!(f, "nil"),
+            Type::Sym  => write!(f, "symbol"),
+            Type::Str  => write!(f, "string"),
+            Type::Proc => write!(f, "procedure"),
+            Type::Any  => write!(f, "any")
+        }
+    }
+}
+
+
 
 impl fmt::Display for Proc {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {

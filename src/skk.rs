@@ -3,7 +3,7 @@ extern crate time;
 use std::ops::Deref;
 
 
-use expr::Expr;
+use expr::{Expr, Type};
 use error::Error as E;
 use env::{Env, Result};
 #[cfg(test)]
@@ -18,9 +18,9 @@ pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 pub fn k_skk_calc(mut env: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (op, sym));
+    get_args!(args, (op, Sym));
     let skk_num_list = try!(env.find(&"skk-num-list".to_string())).clone();
-    get_args!(&skk_num_list, (x, int) (y, int));
+    get_args!(&skk_num_list, (x, Int) (y, Int));
     let res = match &op[..] {
         "+" => x + y,
         "-" => x - y,
@@ -33,7 +33,7 @@ pub fn k_skk_calc(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 pub fn k_skk_gadget_units_conversion(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (base_unit, str) (v, int) (target_unit, str));
+    get_args!(args, (base_unit, Str) (v, Int) (target_unit, Str));
     // (* v (cdr (assoc target_unit (cdr (assoc base skk-units-alist)))))
     // ("mile" ("km" . 1.6093)
     //         ("yard" . 1760))

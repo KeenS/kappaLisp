@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr,Prim, Proc};
+use expr::{Expr, Type, Prim, Proc};
 use error::Error as E;
 use env::{Env, Result};
 use skk;
@@ -73,8 +73,8 @@ macro_rules! def_arith_op {
             };
             f_foldl(env, &|_, x, y| match (x, y) {
                 (&Expr::Int(x), &Expr::Int(y)) => Ok(Expr::Int(expr!(x $op y))),
-                (&Expr::Int(_), y) => Err(E::Type("int".to_string(), y.clone())),
-                (x, _) => Err(E::Type("int".to_string(), x.clone())),
+                (&Expr::Int(_), y) => Err(E::Type(Type::Int, y.clone())),
+                (x, _) => Err(E::Type(Type::Int, x.clone())),
                     
             }, &init, args)
 
@@ -88,44 +88,44 @@ def_arith_op!(k_mul, *, Expr::Int(1));
 def_arith_op!(k_div, /, Expr::Int(1));
 
 macro_rules! get_args_one {
-    ($v:expr, int) => (
+    ($v:expr, Int) => (
         match $v {
             &Expr::Int(x) => Ok(x),
-            hd => Err(E::Type("int".to_string(), hd.clone()))
+            hd => Err(E::Type(Type::Int, hd.clone()))
         }
     );
-    ($v:expr, str) => (
+    ($v:expr, Str) => (
         match $v {
             &Expr::Str(ref x) => Ok(x),
-            hd => Err(E::Type("string".to_string(), hd.clone()))
+            hd => Err(E::Type(Type::Str, hd.clone()))
 
         }
     );
-    ($v:expr, sym) => (
+    ($v:expr, Sym) => (
         match $v {
             &Expr::Sym(ref x) => Ok(x),
-            hd => Err(E::Type("symbol".to_string(), hd.clone()))
+            hd => Err(E::Type(Type::Sym, hd.clone()))
         }
     );
-    ($v:expr, nil) => (
+    ($v:expr, Nil) => (
         match $v {
             &Expr::Nil => Ok(()),
-            hd => Err(E::Type("nil".to_string(), hd.clone()))
+            hd => Err(E::Type(Type::Nil, hd.clone()))
         }
     );
-    ($v:expr, cons) => (
+    ($v:expr, Cons) => (
         match $v {
             &Expr::Cons(ref car, ref cdr) => Ok((car.deref(), cdr.deref())),
-            hd => Err(E::Type("cons".to_string(), hd.clone()))
+            hd => Err(E::Type(Type::Cons, hd.clone()))
         }
     );
-    ($v:expr, fun) => (
+    ($v:expr, Proc) => (
         match $v {
             &Expr::Proc(ref p) => Ok(p.deref()),
-            hd => Err(E::Type("function".to_string(), hd.clone()))
+            hd => Err(E::Type(Type::Proc, hd.clone()))
         }
     );
-    ($v:expr, any) => (
+    ($v:expr, Any) => (
         match $v {
             hd => if true {
                 Ok(hd)
@@ -181,7 +181,7 @@ macro_rules! get_args {
 fn k_concat(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let res = f_foldl(env, &|_, acc, x| match (acc, x) {
         (&Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(Expr::Str(format!("{}{}",acc, x))),
-        (_, y) => Err(E::Type("string".to_string(), y.clone()))
+        (_, y) => Err(E::Type(Type::Str, y.clone()))
     }
                       , &Expr::Str("".to_string()), &args);
     Ok(try!(res).clone())
@@ -221,12 +221,12 @@ fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
 
 
 fn k_car(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, ((car, _), cons));
+    get_args!(args, ((car, _), Cons));
     Ok(car.clone())
 }
 
 fn k_cdr(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, ((_, cdr), cons));
+    get_args!(args, ((_, cdr), Cons));
     Ok(cdr.clone())
 
 }
@@ -258,7 +258,7 @@ fn funcall(mut env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
 }
 
 fn k_quote(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (sexp, any));
+    get_args!(args, (sexp, Any));
     Ok(sexp.clone())
 }
 
@@ -298,18 +298,18 @@ fn k_progn(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (s, any) (f, any));
+    get_args!(args, (s, Any) (f, Any));
     let s = try!(eval(env, s));
     let f = try!(feval(env, f));
     let tmp = Expr::cons(s, Expr::Nil);
-    get_args!(&tmp, (s, sym));
+    get_args!(&tmp, (s, Sym));
     env.fregister(s.clone(), f.clone());
     return Ok(Expr::Nil);
 }
 
 fn k_if(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     // TODO: optional else clasue. Need optional argments.
-    get_args!(args, (cnd, any) (thn, any) (els, any));
+    get_args!(args, (cnd, Any) (thn, Any) (els, Any));
     let res = try!(eval(env, cnd));
     if res != Expr::Nil {
         eval(env, thn)

@@ -1,11 +1,11 @@
 use std::fmt::{Display, Formatter, Error as E};
 use std::error;
-use expr::Expr;
+use expr::{Expr, Type};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Error {
     InvalidArgument(Expr),
-    Type(String, Expr),
+    Type(Type, Expr),
     ArityShort,
     ArityExceed,
     Form(Expr),
@@ -19,7 +19,7 @@ impl Display for Error {
     fn fmt(&self,  f:&mut Formatter) -> Result<(), E> {
         let res = match self {
             &Error::InvalidArgument(ref args) => write!(f, "invalid argument: {}", args),
-            &Error::Type(ref s, ref args) => write!(f, "type mismatch: expected: {}, got: {}", s, args),
+            &Error::Type(ref t, ref args) => write!(f, "type mismatch: expected: {}, got: {}", t, args),
             &Error::ArityShort => write!(f, "too few argument"),
             &Error::ArityExceed => write!(f, "too many argument"),
             &Error::Form(ref e) => write!(f, "invalid form: {}", e),
