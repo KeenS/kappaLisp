@@ -103,11 +103,22 @@ fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (s, Any) (f, Any));
     let s = try!(eval(env, s));
     let f = try!(feval(env, f));
-    let tmp = cons(s, Expr::Nil);
+    let tmp = list1(s);
     get_args!(&tmp, (s, Sym));
     env.fregister(s.clone(), f.clone());
     return Ok(Expr::Nil);
 }
+
+fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args, (s, Any) (f, Any));
+    let s = try!(eval(env, s));
+    let e = try!(eval(env, f));
+    let tmp = list1(s);
+    get_args!(&tmp, (s, Sym));
+    env.register(s.clone(), e.clone());
+    return Ok(Expr::Nil);
+}
+
 
 fn k_if(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     // TODO: optional else clasue. Need optional argments.
@@ -165,6 +176,7 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
                     "lambda" => k_lambda(env, cdr),
                     "progn" => k_progn(env, cdr),
                     "fset" => k_fset(env, cdr),
+                    "set"  => k_set(env, cdr),
                     "if" => k_if(env, cdr),
                     _ => {
                         let f = try!(feval(env, car));
@@ -190,6 +202,8 @@ fn test_atom(){
     assert_eq!(eval(&mut Env::new(), &read("")), Ok(Expr::EOF));
     assert_eq!(eval(&mut Env::new(), &read("\"string\"")), Ok(Expr::Str("string".to_string())));
 }
+// TODO: test `function`
+
 
 #[test]
 fn test_progn(){
@@ -210,4 +224,19 @@ fn test_fset(){
     let mut env = Env::new();
     assert_eq!(eval(&mut env, &read("(fset 'add2 (lambda (x) (+ x 2)))")), Ok(Expr::Nil));
     assert_eq!(eval(&mut env, &read("(add2 2)")), Ok(Expr::Int(4)));
+}
+
+
+#[test]
+fn test_set() {
+    let mut env = Env::new();
+    assert_eq!(eval(&mut env, &read("(set 'foo (+ 1 2 3))")), Ok(Expr::Nil));
+    assert_eq!(eval(&mut env, &read("foo")), Ok(Expr::Int(6)));
+    
+}
+
+#[test]
+fn test_if() {
+    assert_eq!(eval(&mut Env::new(), &read("(if () 1 2)")), Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), &read("(if 1 1 2)")), Ok(Expr::Int(1)));
 }
