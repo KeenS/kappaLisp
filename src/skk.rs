@@ -54,7 +54,7 @@ pub fn k_skk_gadget_units_conversion(_: &mut Env, args: &Expr) -> Result<Expr> {
 #[test]
 fn test_skk_calc(){
     let mut env = Env::new();
-    env.init();
+    env.init().unwrap();
     env.register("skk-num-list".to_string(), list2(Expr::Int(3), Expr::Int(2)));
     println!("{:?}", eval(&mut Env::new(), &read("(skk-calc '+)")));
     assert_eq!(eval(&mut env, &read("(skk-calc '+)")), Ok(Expr::Int(5)));

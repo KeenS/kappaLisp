@@ -142,6 +142,11 @@ fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
 }
 
+pub fn read_in(mut input: &mut Peekable<Chars>) -> Option<Expr> {
+    read_aux(input, ' ')
+}
+
+
 pub fn read(s: &str) -> Expr {
     let mut input = s.chars().peekable();
     match read_aux(&mut input, ' ') {

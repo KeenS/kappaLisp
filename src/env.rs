@@ -3,7 +3,7 @@ use std::collections::LinkedList;
 
 use expr::{Expr, Proc, Prim};
 use error::Error as E;
-use read::read;
+use read::read_in;
 use eval::eval;
 use std::result;
 
@@ -45,8 +45,11 @@ impl Env {
     }
 
     pub fn init(&mut self) -> Result<()>{
-        let mut env = Self::new();
-        try!(eval(&mut env, &read(include_str!("assoc.lisp"))));
+        let stdlib = include_str!("stdlib.lisp");
+        let mut input = stdlib.chars().peekable();
+        while let Some(e) = read_in(&mut input) {
+            let _ = try!(eval(self, &e));
+        }
         Ok(())
     }
 

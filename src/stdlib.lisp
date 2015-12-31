@@ -5,3 +5,7 @@
                       (cdr c)
                       (assoc key (cdr list))))
                 nil)))
+
+(fset 'skk-gadget-units-conversion
+      (lambda (base v target) (* v (cdr (assoc target (cdr (assoc base skk-units-alist)))))))
+
