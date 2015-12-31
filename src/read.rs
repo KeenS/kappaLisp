@@ -1,8 +1,8 @@
-use std::str::Chars;
+use std::str::{Chars, FromStr};
 use std::iter::Peekable;
 use std::ops::Deref;
 
-use expr::Expr;
+use expr::{Expr, Kfloat};
 use util::*;
 
 macro_rules! try_opt {
@@ -43,30 +43,58 @@ fn is_delimiter(c: char) -> bool {
 }
 
 
-fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
+fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<isize> {
     let mut acc = String::new();
-    let mut c;
     acc.push(first);
     while input.peek().unwrap_or(&' ').is_digit(radix) {
-        match input.next() {
-            Some(x) => c = x,
+        let c = match input.next() {
+            Some(x) => x,
             None => break
-        }
+        };
         acc.push(c);
     }
-    Some(Expr::Int(isize::from_str_radix(&acc[..], radix).unwrap()))
+    Some(isize::from_str_radix(&acc[..], radix).unwrap())
 }
 
-fn read_int(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
+fn read_int(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<isize> {
     match first {
-        '0'...'9' => read_uint(input, first, radix),
+        '0'...'9' => Some(try_opt!(read_uint(input, first, radix))),
         _ =>{
             let c = try_opt!(input.next());
             match first {
-                '+' => read_uint(input, c, radix),
-                '-' => read_uint(input, c, radix).map(|e| match e {Expr::Int(i) => Expr::Int(-i),_ =>e}),
+                '+' => Some(try_opt!(read_uint(input, c, radix))),
+                '-' => Some(-1 * try_opt!(read_uint(input, c, radix))),
                 _   => None
             }
+        }
+    }
+}
+
+
+fn read_number(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
+    let i = try_opt!(read_int(input, first, radix));
+    match input.peek(){
+        Some(&'.') => {
+            let mut acc = String::new();
+            match first {
+                '-' => {acc.push('-'); acc.push('0')},
+                _   => acc.push('0')
+            }
+            acc.push(try_opt!(input.next()));
+            while input.peek().unwrap_or(&' ').is_digit(radix) {
+                let c = match input.next() {
+                    Some(x) => x,
+                    None => break
+                };
+                acc.push(c);
+            };
+            // FIXME: ignoring radix
+            let f = Kfloat::from_str(&acc[..]).unwrap();
+            Some(Expr::Float((i as Kfloat) + f))
+            
+        },
+        _ => {
+            Some(Expr::Int(i))
         }
     }
 }
@@ -86,7 +114,7 @@ fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
 fn read_plus(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let c = try_opt!(input.peek()).clone();
     match c.is_digit(10) {
-        true => read_int(input, first, 10),
+        true => read_number(input, first, 10),
         false => read_symbol(input, first)
     }
 }
@@ -95,7 +123,7 @@ fn read_plus(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
 fn read_hyphen(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let c = try_opt!(input.peek()).clone();
     match c.is_digit(10) {
-        true => read_int(input, first, 10),
+        true => read_number(input, first, 10),
         false => read_symbol(input, first)
     }
 }
@@ -161,7 +189,7 @@ fn read_dispatch(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
 fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let first =  try_opt!(next_nonwhitespaces(input, first)) ;
     match first {
-        '0'...'9' => read_uint(input, first, 10),
+        '0'...'9' => read_number(input, first, 10),
         '-' => read_hyphen(input, first),
         '+' => read_plus(input, first),
         '(' => read_list(input, first),
@@ -204,6 +232,16 @@ fn test_read_int() {
     assert_eq!(read("10"), (Expr::Int(10)));
     assert_eq!(read("-10"), (Expr::Int(-10)));
     assert_eq!(read("+10"), (Expr::Int(10)));
+}
+
+#[test]
+fn test_read_float() {
+    assert_eq!(read("0.0"), (Expr::Float(0.0)));
+    assert_eq!(read("10.123"), (Expr::Float(10.123)));
+    assert_eq!(read("-0.1"), (Expr::Float(-0.1)));
+    assert_eq!(read("-10.1"), (Expr::Float(-10.1)));
+    assert_eq!(read("+0.0"), (Expr::Float(0.0)));
+    assert_eq!(read("+10.0123"), (Expr::Float(10.0123)));
 }
 
 #[test]
