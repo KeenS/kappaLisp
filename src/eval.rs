@@ -41,11 +41,12 @@ pub fn funcall(mut env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
                 Prim::Mul => k_mul(env, args),
                 Prim::Concat => k_concat(env, args),
                 Prim::Funcall => k_funcall(env, args),
+                Prim::List => k_list(env, args),
+                Prim::Cons => k_cons(env, args),
                 Prim::Car => k_car(env, args),
                 Prim::Cdr => k_cdr(env, args),
-                Prim::CurrentTimeString => skk::k_current_time_string(env, args),
+                Prim::CurrentTimeString => k_current_time_string(env, args),
                 Prim::SkkCalc => skk::k_skk_calc(env, args),
-                Prim::SkkGadgetUnitsConversion  =>  skk::k_skk_gadget_units_conversion(env, args)
             }
         },
         &Proc::Lambda(ref params, ref body) => {

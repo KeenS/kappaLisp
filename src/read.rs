@@ -63,7 +63,11 @@ fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     while input.peek().map(|c| !is_delimiter(*c)).unwrap_or(false) {
         sym.push(input.next().unwrap());
     }
-    Some(Expr::Sym(sym))
+    if sym == "nil" {
+        Some(Expr::Nil)
+    } else {        
+        Some(Expr::Sym(sym))
+    }
 }
 
 fn read_plus(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
@@ -161,6 +165,11 @@ pub fn read(s: &str) -> Expr {
 fn test_read_empty(){
     assert_eq!(read(""), (Expr::EOF));
     assert_eq!(read("(a b"), (Expr::EOF));
+}
+
+#[test]
+fn test_read_nil() {
+    assert_eq!(read("nil"), (Expr::Nil));
 }
 
 #[test]

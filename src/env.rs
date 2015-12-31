@@ -36,11 +36,12 @@ impl Env {
         env.fregister("*".to_string(), Proc::Prim(Prim:: Mul));
         env.fregister("concat".to_string(), Proc::Prim(Prim::Concat));
         env.fregister("funcall".to_string(), Proc::Prim(Prim::Funcall));
+        env.fregister("cons".to_string(), Proc::Prim(Prim::Cons));
         env.fregister("car".to_string(), Proc::Prim(Prim::Car));
         env.fregister("cdr".to_string(), Proc::Prim(Prim::Cdr));
+        env.fregister("list".to_string(), Proc::Prim(Prim::List));
         env.fregister("current-time-string".to_string(), Proc::Prim(Prim::CurrentTimeString));
         env.fregister("skk-calc".to_string(), Proc::Prim(Prim::SkkCalc));
-        env.fregister("skk-gadget-units-conversion".to_string(),  Proc::Prim(Prim::SkkGadgetUnitsConversion));
         env
     }
 

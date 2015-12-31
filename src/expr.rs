@@ -38,11 +38,12 @@ pub enum Prim {
     Mul,
     Concat,
     Funcall,
+    Cons,
     Car,
     Cdr,
+    List,
     CurrentTimeString,
     SkkCalc,
-    SkkGadgetUnitsConversion
 }
 
 
@@ -96,11 +97,12 @@ impl fmt::Display for Prim {
             Prim::Mul => write!(f, "*"),
             Prim::Concat => write!(f, "concat"),
             Prim::Funcall => write!(f, "funcall"),
+            Prim::Cons => write!(f, "cons"),
             Prim::Car => write!(f, "car"),
             Prim::Cdr => write!(f, "cdr"),
+            Prim::List => write!(f, "list"),
             Prim::CurrentTimeString => write!(f, "current-time-string"),
             Prim::SkkCalc => write!(f, "skk-calc"),
-            Prim::SkkGadgetUnitsConversion => write!(f, "skk-gadget-units-conversion")
         }
     }
     

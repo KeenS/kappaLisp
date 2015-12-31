@@ -1,3 +1,4 @@
+extern crate time;
 use std::ops::Deref;
 
 use expr::{Expr, Type};
@@ -64,6 +65,11 @@ pub fn k_funcall(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     }
 }
 
+pub fn k_cons(_: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args, (car, Any) (cdr, Any));
+    Ok(cons(car.clone(), cdr.clone()))
+}
+
 pub fn k_car(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, ((car, _), Cons));
     Ok(car.clone())
@@ -74,6 +80,18 @@ pub fn k_cdr(_: &mut Env, args: &Expr) -> Result<Expr> {
     Ok(cdr.clone())
 
 }
+
+pub fn k_list(_: &mut Env, args: &Expr) -> Result<Expr> {
+    Ok(args.clone())
+}
+
+
+pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args);
+    let now = time::now();
+    Ok(Expr::Str(format!("{}", now.ctime())))
+}
+
 
 
 #[test]
@@ -123,4 +141,32 @@ fn test_nested_arith(){
 #[test]
 fn test_concat(){
     assert_eq!(eval(&mut Env::new(), &read("(concat \"a\" \"b\" \"cd\")")), Ok(Expr::Str("abcd".to_string())))
+}
+
+#[test]
+fn test_cons() {
+    assert_eq!(eval(&mut Env::new(), &read("(cons 1 2)")), Ok(cons(Expr::Int(1), Expr::Int(2))));
+    assert_eq!(eval(&mut Env::new(), &read("(cons () 2)")), Ok(cons(Expr::Nil, Expr::Int(2))));
+}
+
+
+
+#[test]
+fn test_car() {
+    assert_eq!(eval(&mut Env::new(), &read("(car (cons 1 2))")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), &read("(car (list 1 2))")), Ok(Expr::Int(1)));
+}
+
+#[test]
+fn test_cdr() {
+    assert_eq!(eval(&mut Env::new(), &read("(cdr (cons 1 2))")), Ok(Expr::Int(2)));
+    assert_eq!(eval(&mut Env::new(), &read("(cdr (list 1 2))")), Ok(list1(Expr::Int(2))));
+}
+
+
+#[test]
+fn test_list() {
+    assert_eq!(eval(&mut Env::new(), &read("(list)")), Ok(Expr::Nil));
+    assert_eq!(eval(&mut Env::new(), &read("(list 1)")), Ok(list1(Expr::Int(1))));
+    assert_eq!(eval(&mut Env::new(), &read("(list 1 2)")), Ok(list2(Expr::Int(1), Expr::Int(2))));
 }
