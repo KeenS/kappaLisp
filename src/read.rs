@@ -25,6 +25,18 @@ fn next_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<c
     input.next()
 }
 
+fn peek_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<char> {
+    match first.is_whitespace(){
+        false => return Some(first),
+        true =>()
+    }
+    while input.peek().map(|c| c.is_whitespace()).unwrap_or(false) {
+        input.next();
+    }
+    input.peek().map(|c| c.clone())
+}
+
+
 fn is_delimiter(c: char) -> bool {
     c.is_whitespace() || "()\"'".contains(c)
 }
@@ -102,16 +114,22 @@ fn read_string(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
 fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let c = try_opt!(next_nonwhitespaces(input, ' '));
     let car =  match c {
-            ')' => return Some(Expr::Nil),
-            _ => read_aux(input, c)
-        };
-    try_opt!(input.peek());
-    let cdr = read_list(input, '(');
+        ')' => return Some(Expr::Nil),
+        _ => read_aux(input, c)
+    };
+
+    let c = try_opt!(peek_nonwhitespaces(input, ' '));
+    let cdr = if c == '.' {
+        let _ = try_opt!(next_nonwhitespaces(input, ' '));
+        read_aux(input, ' ')
+    } else {
+        read_list(input, '(')
+    };
     match (car, cdr) {
         (Some(car), Some(cdr)) => Some(cons(car, cdr)),
         _ => None
     }
-        
+    
 }
 
 fn read_quote(mut input: &mut Peekable<Chars>, _: char)  -> Option<Expr> {
@@ -185,6 +203,8 @@ fn test_read_list(){
     assert_eq!(read("()"), (Expr::Nil));
     assert_eq!(read("(1)"), (list1(Expr::Int(1))));
     assert_eq!(read("(1 2)"), (list2(Expr::Int(1), Expr::Int(2))));
+    assert_eq!(read("(1 . 2)"), (cons(Expr::Int(1), Expr::Int(2))));
+    assert_eq!(read("(1 2 . 3)"), (cons(Expr::Int(1), cons(Expr::Int(2), Expr::Int(3)))));
 }
 
 
