@@ -7,6 +7,6 @@ use kappa_lisp::eval::eval;
 fn main() {
     let env = &mut Env::new();
     let expr = read("(current-time-string)");
-    let expr_ = eval(env, expr).unwrap();
+    let expr_ = eval(env, &expr).unwrap();
     println!("{}", expr_);
 }
