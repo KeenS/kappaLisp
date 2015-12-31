@@ -1,10 +1,8 @@
-
 use std::ops::Deref;
 
 
-use expr::{Expr, Type};
-use error::Error as E;
-use env::{Env, Result};
+use expr::{Expr, Type, Error as E, Result};
+use env::Env;
 use util::*;
 
 
@@ -29,15 +27,14 @@ pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 
-pub fn init(mut env: &mut Env) {
+pub fn init(mut env: &mut Env) -> Result<()>{
     env.fregister("skk-calc", procedure("k_skk_calc", k_skk_calc));
-
+    Ok(())
 }
 
 #[test]
 fn test_skk_calc(){
     let mut env = Env::new();
-    env.init().unwrap();
     env.register("skk-num-list".to_string(), list2(Expr::Int(3), Expr::Int(2)));
     assert_eq!(eval(&mut env, &read("(skk-calc '+)")), Ok(Expr::Int(5)));
     assert_eq!(eval(&mut env, &read("(skk-calc '-)")), Ok(Expr::Int(1)));
@@ -49,7 +46,6 @@ fn test_skk_calc(){
 #[test]
 fn test_skk_gadget_units_conversion(){
     let mut env = Env::new();
-    env.init().unwrap();
     assert_eq!(eval(&mut env, &read("(skk-gadget-units-conversion \"mile\" 1 \"km\")")),
                Ok(Expr::Float(1.6093)));
 }

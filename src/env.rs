@@ -1,16 +1,10 @@
 use std::collections::HashMap;
 use std::collections::LinkedList;
 
-use expr::{Expr, Proc};
-use error::Error as E;
-use read::read_in;
-use eval::eval;
+use expr::{Expr, Proc, Error as E, Result};
+use base;
 use skk;
 use stdlib;
-use std::result;
-
-
-pub type Result<T> = result::Result<T, E>;
 
 pub struct Env {
     global: HashMap<String, Expr>,
@@ -29,18 +23,10 @@ impl Env {
             flocal: LinkedList::new()
         };
 
-        stdlib::init(&mut env);
-        skk::init(&mut env);
+        base::init(&mut env).unwrap();
+        stdlib::init(&mut env).unwrap();
+        skk::init(&mut env).unwrap();
         env
-    }
-
-    pub fn init(&mut self) -> Result<()>{
-        let stdlib = include_str!("stdlib.lisp");
-        let mut input = stdlib.chars().peekable();
-        while let Some(e) = read_in(&mut input) {
-            let _ = try!(eval(self, &e));
-        }
-        Ok(())
     }
 
     pub fn new_local(&mut self) {

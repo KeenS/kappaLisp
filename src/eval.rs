@@ -1,9 +1,8 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr, Type, Proc};
-use error::Error as E;
-use env::{Env, Result};
+use expr::{Expr, Type, Proc, Error as E, Result};
+use env::Env;
 use util::*;
 #[cfg(test)]
 use read::read;

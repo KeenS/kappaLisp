@@ -1,8 +1,13 @@
 use std::rc::Rc;
 use std::fmt;
-use env::{Env, Result};
+use std::fmt::{Display, Formatter, Error as E};
+use std::error;
+use std::result;
+
+use env::Env;
 
 pub type Kfloat = f32;
+pub type Result<T> = result::Result<T, Error>;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Expr {
@@ -15,6 +20,7 @@ pub enum Expr {
     Proc(Proc),
     EOF
 }
+
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Type {
@@ -94,3 +100,48 @@ impl fmt::Display for Proc {
         }
     }
 }
+
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+    InvalidArgument(Expr),
+    Type(Type, Expr),
+    ArityShort,
+    ArityExceed,
+    Form(Expr),
+    NotFunction(Expr),
+    Unbound(String),
+    User(String)
+}
+
+
+impl Display for Error {
+    fn fmt(&self,  f:&mut Formatter) -> result::Result<(), E> {
+        let res = match self {
+            &Error::InvalidArgument(ref args) => write!(f, "invalid argument: {}", args),
+            &Error::Type(ref t, ref args) => write!(f, "type mismatch: expected: {}, got: {}", t, args),
+            &Error::ArityShort => write!(f, "too few argument"),
+            &Error::ArityExceed => write!(f, "too many argument"),
+            &Error::Form(ref e) => write!(f, "invalid form: {}", e),
+            &Error::NotFunction(ref e) => write!(f, "not a function: {}", e),
+            &Error::Unbound(ref s) => write!(f, "unbound variable: {}", s),
+            &Error::User(ref s) => write!(f, "user error: {}", s)
+                
+        };
+        try!(res);
+        Ok(())
+    }
+}
+
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        "Lisp Error"
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        None
+    }
+}
+
+    
