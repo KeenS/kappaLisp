@@ -5,13 +5,12 @@ use std::ops::Deref;
 use expr::{Expr, Type};
 use error::Error as E;
 use env::{Env, Result};
-use util::*;
 #[cfg(test)]
 use read::read;
 #[cfg(test)]
 use eval::eval;
 
-pub fn k_skk_calc(mut env: &mut Env, args: &Expr) -> Result<Expr> {
+pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (op, Sym));
     let skk_num_list = try!(env.find(&"skk-num-list".to_string())).clone();
     get_args!(&skk_num_list, (x, Int) (y, Int));

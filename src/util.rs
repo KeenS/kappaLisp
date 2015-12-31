@@ -20,14 +20,14 @@ pub fn list2(a1: Expr, a2: Expr) -> Expr {
 pub fn car(cons: &Expr) -> Result<Expr> {
     match cons {
         &Expr::Cons(ref car, _) => Ok(car.deref().clone()),
-        arg => Err(E::Type(Type::Cons, cons.clone()))
+        arg => Err(E::Type(Type::Cons, arg.clone()))
     }
 }
 
 pub fn cdr(cons: &Expr) -> Result<Expr> {
     match cons {
         &Expr::Cons(_, ref cdr) => Ok(cdr.deref().clone()),
-        arg => Err(E::Type(Type::Cons, cons.clone()))
+        arg => Err(E::Type(Type::Cons, arg.clone()))
     }
 }
 
