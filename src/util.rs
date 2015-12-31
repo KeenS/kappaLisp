@@ -41,6 +41,13 @@ macro_rules! get_args_one {
             hd => Err(E::Type(Type::Int, hd.clone()))
         }
     );
+
+    ($v:expr, Float) => {
+        match $v {
+            &Expr::Float(x) => Ok(x),
+            hd => Err(E::Type(Type::Float, hd.clone()))
+        }
+    };
     ($v:expr, Str) => (
         match $v {
             &Expr::Str(ref x) => Ok(x),

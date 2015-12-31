@@ -1,10 +1,12 @@
 use std::rc::Rc;
-use std::ops::Deref;
 use std::fmt;
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+pub type Kfloat = f32;
+
+#[derive(PartialEq, Clone, Debug)]
 pub enum Expr {
     Int(isize),
+    Float(Kfloat),
     Cons(Rc<Expr>, Rc<Expr>),
     Nil,
     Sym(String),
@@ -16,6 +18,7 @@ pub enum Expr {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Type {
     Int,
+    Float,
     Cons,
     Nil,
     Sym,
@@ -24,7 +27,7 @@ pub enum Type {
     Any
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Proc {
     Lambda(Rc<Expr>, Rc<Expr>),
     Prim(Prim)
@@ -52,6 +55,7 @@ impl fmt::Display for Expr {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
         match self.clone() {
             Expr::Int(i) => write!(f, "{}", i),
+            Expr::Float(fl) => write!(f, "{}", fl),
             // :TODO: pretty print for lists
             Expr::Cons(ref car,ref cdr) => write!(f, "({} . {})", car, cdr),
             Expr::Nil => write!(f, "nil"),
@@ -66,13 +70,14 @@ impl fmt::Display for Expr {
 impl fmt::Display for Type {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
         match self.clone() {
-            Type::Int  => write!(f, "integer"),
-            Type::Cons => write!(f, "cons"),
-            Type::Nil  => write!(f, "nil"),
-            Type::Sym  => write!(f, "symbol"),
-            Type::Str  => write!(f, "string"),
-            Type::Proc => write!(f, "procedure"),
-            Type::Any  => write!(f, "any")
+            Type::Int   => write!(f, "integer"),
+            Type::Float => write!(f, "float"),
+            Type::Cons  => write!(f, "cons"),
+            Type::Nil   => write!(f, "nil"),
+            Type::Sym   => write!(f, "symbol"),
+            Type::Str   => write!(f, "string"),
+            Type::Proc  => write!(f, "procedure"),
+            Type::Any   => write!(f, "any")
         }
     }
 }

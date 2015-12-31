@@ -163,6 +163,7 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
         &Expr::EOF |
         &Expr::Str(_) |
         &Expr::Int(_) |
+        &Expr::Float(_) |
         &Expr::Proc(_) => Ok(expr.clone()),
         &Expr::Sym(ref name) => match env.find(&name.to_string()) {
             Ok(v) =>Ok(v.clone()),

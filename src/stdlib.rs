@@ -1,7 +1,7 @@
 extern crate time;
 use std::ops::Deref;
 
-use expr::{Expr, Type};
+use expr::{Expr, Type, Kfloat};
 use error::Error as E;
 use env::{Env, Result};
 use util::*;
@@ -30,6 +30,9 @@ macro_rules! def_arith_op {
             };
             f_foldl(env, &|_, x, y| match (x, y) {
                 (&Expr::Int(x), &Expr::Int(y)) => Ok(Expr::Int(expr!(x $op y))),
+                (&Expr::Float(x), &Expr::Int(y)) => Ok(Expr::Float(expr!(x $op (y as Kfloat)))),
+                (&Expr::Int(x), &Expr::Float(y)) => Ok(Expr::Float(expr!((x as Kfloat) $op y))),
+                (&Expr::Float(x), &Expr::Float(y)) => Ok(Expr::Float(expr!(x $op y))),
                 (&Expr::Int(_), y) => Err(E::Type(Type::Int, y.clone())),
                 (x, _) => Err(E::Type(Type::Int, x.clone())),
                     

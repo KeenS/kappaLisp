@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter, Error as E};
 use std::error;
 use expr::{Expr, Type};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     InvalidArgument(Expr),
     Type(Type, Expr),
