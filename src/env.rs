@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::collections::LinkedList;
 
-use expr::{Expr, Proc, Error as E, Result};
-use base;
-use skk;
-use stdlib;
+use ::expr::{Expr, Proc, Error as E, Result};
+use ::base;
+use ::skk;
+use ::stdlib;
 
 pub struct Env {
     global: HashMap<String, Expr>,

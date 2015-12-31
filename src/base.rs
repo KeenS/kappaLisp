@@ -1,14 +1,14 @@
 extern crate time;
 use std::ops::Deref;
 
-use expr::{Expr, Type, Kfloat, Result, Error as E};
-use env::{Env};
-use util::*;
-use eval::funcall;
+use ::expr::{Expr, Type, Kfloat, Result, Error as E};
+use ::env::{Env};
+use ::util::*;
+use ::eval::funcall;
 #[cfg(test)]
-use eval::eval;
+use ::eval::eval;
 #[cfg(test)]
-use read::read;
+use ::read::read;
 
 // since rust's macro cannot treat binop, work around macro is needed.
 macro_rules! expr {

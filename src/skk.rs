@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
 
-use expr::{Expr, Type, Error as E, Result};
-use env::Env;
-use util::*;
+use ::expr::{Expr, Type, Error as E, Result};
+use ::env::Env;
+use ::util::*;
 
 
 #[cfg(test)]

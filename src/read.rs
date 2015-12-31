@@ -2,8 +2,8 @@ use std::str::{Chars, FromStr};
 use std::iter::Peekable;
 use std::ops::Deref;
 
-use expr::{Expr, Kfloat};
-use util::*;
+use ::expr::{Expr, Kfloat};
+use ::util::*;
 
 macro_rules! try_opt {
     ($e: expr) => (

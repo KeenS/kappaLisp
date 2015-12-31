@@ -1,12 +1,12 @@
-use expr::Result;
-use env::Env;
-use read::read_in;
-use eval::eval;
+use ::expr::Result;
+use ::env::Env;
+use ::read::read_in;
+use ::eval::eval;
 
 #[cfg(test)]
-use read::read;
+use ::read::read;
 #[cfg(test)]
-use expr::Expr;
+use ::expr::Expr;
 
 pub fn init(mut env: &mut Env) -> Result<()> {
     let lisp = include_str!("stdlib.lisp");

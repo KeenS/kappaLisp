@@ -1,8 +1,8 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr, Type, Proc, Error as E, Result};
-use env::Env;
+use ::expr::{Expr, Type, Proc, Error as E, Result};
+use ::env::Env;
 
 pub fn cons(car: Expr, cdr: Expr) -> Expr {
     Expr::Cons(Rc::new(car), Rc::new(cdr))

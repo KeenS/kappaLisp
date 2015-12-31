@@ -1,11 +1,11 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use expr::{Expr, Type, Proc, Error as E, Result};
-use env::Env;
-use util::*;
+use ::expr::{Expr, Type, Proc, Error as E, Result};
+use ::env::Env;
+use ::util::*;
 #[cfg(test)]
-use read::read;
+use ::read::read;
 
 fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
     let mut phead = params;

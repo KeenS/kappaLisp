@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter, Error as E};
 use std::error;
 use std::result;
 
-use env::Env;
+use ::env::Env;
 
 pub type Kfloat = f32;
 pub type Result<T> = result::Result<T, Error>;
