@@ -4,19 +4,20 @@ use std::ops::Deref;
 
 
 use expr::Expr;
-use env::Env;
+use error::Error as E;
+use env::{Env, Result};
 #[cfg(test)]
 use read::read;
 #[cfg(test)]
 use eval::eval;
 
-pub fn k_current_time_string(_: &mut Env, args: Expr) -> Result<Expr, String> {
+pub fn k_current_time_string(_: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args);
     let now = time::now();
     Ok(Expr::Str(format!("{}", now.ctime())))
 }
 
-pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args, (op, sym));
     let skk_num_list = try!(env.find(&"skk-num-list".to_string())).clone();
     get_args!(skk_num_list, (x, int) (y, int));
@@ -25,12 +26,13 @@ pub fn k_skk_calc(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
         "-" => x - y,
         "*" => x * y,
         "/" => x / y,
-        op => return Err(format!("unknown operator {}", op))
+        op => return //Err(format!("unknown operator {}", op))
+                       Err(E::User(format!("unknown operator {}", op)))
     };
     Ok(Expr::Int(res))
 }
 
-pub fn k_skk_gadget_units_conversion(_: &mut Env, args: Expr) -> Result<Expr, String> {
+pub fn k_skk_gadget_units_conversion(_: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args, (base_unit, str) (v, int) (target_unit, str));
     // (* v (cdr (assoc target_unit (cdr (assoc base skk-units-alist)))))
     // ("mile" ("km" . 1.6093)

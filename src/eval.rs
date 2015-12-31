@@ -2,13 +2,14 @@ use std::rc::Rc;
 use std::ops::Deref;
 
 use expr::{Expr,Prim, Proc};
-use env::Env;
+use error::Error as E;
+use env::{Env, Result};
 use skk;
 #[cfg(test)]
 use read::read;
 
-fn f_foldl<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String>
-    where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>{
+fn f_foldl<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr>
+    where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr>{
     let mut res = init;
     let mut head = args;
     let nil = &Expr::Nil;
@@ -18,36 +19,38 @@ fn f_foldl<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr,
                 res = try!(f(env, res, car));
                 head = cdr;
             }
-            _ => return Err(format!("invalid argument {:?} to function", args.clone()))
+            _ => return //Err(format!("invalid argument {:?} to function", args.clone()))
+                          Err(E::InvalidArgument)
         }
     }
     Ok(res)
 }
 
-fn f_reverse(mut env: &mut Env, args: &Expr) -> Result<Expr, String> {
+fn f_reverse(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     f_foldl(env, &|_, acc, x| Ok(Expr::Cons(Rc::new(x.clone()), Rc::new(acc))), Expr::Nil, args)
 }
 
-fn f_foldr<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr, String>
-    where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr, String>{
+fn f_foldr<F>(mut env: &mut Env, f: &F, init: Expr, args: &Expr) -> Result<Expr>
+    where F: Fn(&mut Env, Expr, &Expr) -> Result<Expr>{
     match args {
         &Expr::Nil => Ok(init),
         &Expr::Cons(ref car, ref cdr) => {
             let v = try!(f_foldr(env, f, init, cdr));
             f(env, v, car)
         }
-        _ => Err(format!("invalid argument {:?} to function", args))
+        _ => // Err(format!("invalid argument {:?} to function", args))
+                Err(E::InvalidArgument)
     }
 }
 
-fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String>
-    where F: Fn(&mut Env, Expr) -> Result<Expr, String>{
+fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
+    where F: Fn(&mut Env, Expr) -> Result<Expr>{
     f_foldr(env, &|env, acc, x| Ok(Expr::cons(try!(f(env, x.clone())), acc))
                  , Expr::Nil, list)
 }
 
-fn f_iter<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr, String>
-    where F: Fn(&mut Env, Expr) -> Result<(), String>{
+fn f_iter<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
+    where F: Fn(&mut Env, Expr) -> Result<()>{
     f_foldr(env, &|env, _, x| {try!(f(env,x.clone())); Ok(Expr::Nil)}
                  , Expr::Nil, list)
 }
@@ -62,7 +65,7 @@ macro_rules! expr {
 
 macro_rules! def_arith_op {
     ($name: ident, $op: tt, $init: expr) => {
-        fn $name(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+        fn $name(mut env: &mut Env, args: Expr) -> Result<Expr> {
             let (init, args) = match args {
                 Expr::Cons(ref hd, ref tl) => match tl.deref() {
                     tl @ &Expr::Cons(_, _) => (hd.deref().clone(), tl.clone()),
@@ -72,7 +75,8 @@ macro_rules! def_arith_op {
             };
             f_foldl(env, &|_, x, y| match (x, y) {
                 (Expr::Int(x), &Expr::Int(y)) => Ok(Expr::Int(expr!(x $op y))),
-                (x, y) => Err(format!("non int args {:?} and {:?} are given to $op", x, y))
+                (x, y) => // Err(format!("non int args {:?} and {:?} are given to $op", x, y))
+                             Err(E::Type)
             }, init, &args)
 
         }
@@ -88,37 +92,43 @@ macro_rules! get_args_one {
     ($v:expr, int) => (
         match $v {
             &Expr::Int(x) => Ok(x.clone()),
-            hd => Err(format!("nil expected but got {:?}", hd))
+            hd => //Err(format!("nil expected but got {:?}", hd))
+                    Err(E::Type)
         }
     );
     ($v:expr, str) => (
         match $v {
             &Expr::Str(ref x) => Ok(x.clone()),
-            hd => Err(format!("string expected but got {:?}", hd))
+            hd => // Err(format!("string expected but got {:?}", hd))
+                     Err(E::Type)
         }
     );
     ($v:expr, sym) => (
         match $v {
             &Expr::Sym(ref x) => Ok(x.clone()),
-            hd => Err(format!("symbol expected but got {:?}", hd))
+            hd => // Err(format!("symbol expected but got {:?}", hd))
+                     Err(E::Type)
         }
     );
     ($v:expr, nil) => (
         match $v {
             &Expr::Int(x) => Ok(x.clone()),
-            hd => Err(format!("nil expected but got {:?}", hd))
+            hd => // Err(format!("nil expected but got {:?}", hd))
+                     Err(E::Type)
         }
     );
     ($v:expr, cons) => (
         match $v {
             &Expr::Cons(ref car, ref cdr) => Ok((car.deref().clone(), cdr.deref().clone())),
-            hd => Err(format!("cons expected but got {:?}", hd))
+            hd => // Err(format!("cons expected but got {:?}", hd))
+                     Err(E::Type)
         }
     );
     ($v:expr, fun) => (
         match $v {
             &Expr::Proc(ref p) => Ok(p.deref().clone()),
-            hd => Err(format!("function expected but got {:?}", hd))
+            hd => // Err(format!("function expected but got {:?}", hd))
+                     Err(E::Type)
         }
     );
     ($v:expr, any) => (
@@ -126,8 +136,9 @@ macro_rules! get_args_one {
             hd => if true {
                 Ok(hd.clone())
             } else {
+                unreachable!()
                 // This is needed to let rust compiler infer the result type.
-                Err("unreachable")
+                // Err("unreachable")
             }
         };
     )
@@ -148,14 +159,17 @@ macro_rules! gen_match {
                     let v = try!(get_args_one!(hd.deref(), $ident));
                     (v, gen_match!(tl.deref().clone(), $($other)*))
                 },
-                Expr::Nil => return Err(format!(")shorting number of arguments")),
-                args => return Err(format!("invalid argument {} to function call", args))
+                Expr::Nil => return //Err(format!(")shorting number of arguments"))
+                                      Err(E::ArityShort),
+                args => return // Err(format!("invalid argument {} to function call", args))
+                                  Err(E::ArityExceed)
             };
             );
     ($args: expr, ) => (
         match $args {
             Expr::Nil => (),
-            args => return Err(format!("exceeding number of arguments: {}", args))
+            args => return // Err(format!("exceeding number of arguments: {}", args))
+                              Err(E::ArityExceed)
         }
         );
 }
@@ -175,26 +189,29 @@ macro_rules! get_args {
 }
 
 
-fn k_concat(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_concat(mut env: &mut Env, args: Expr) -> Result<Expr> {
     f_foldl(env, &|_, acc, x| match (acc, x) {
         (Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(Expr::Str(format!("{}{}",acc, x))),
-        (_, y) => Err(format!("non string args {:?} are given to concat", y))
+        (_, y) => //Err(format!("non string args {:?} are given to concat", y))
+                    Err(E::Type)
     }
             , Expr::Str("".to_string()), &args)
 }
 
 
-fn k_funcall(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_funcall(mut env: &mut Env, args: Expr) -> Result<Expr> {
     match args {
         Expr::Cons(f, args) => match f.deref() {
             &Expr::Proc(ref f) => funcall(env, f , args.deref().clone()),
-            f => Err(format!("{} is not a function", f))
+            f => // Err(format!("{} is not a function", f))
+                    Err(E::NotFunction)
         },
-        args => Err(format!("illeagal form of funcall {:?}", args))
+        args => // Err(format!("illeagal form of funcall {:?}", args))
+                   Err(E::Form)
     }
 }
 
-fn bind_names(mut env: &mut Env, params: Expr, args: Expr) -> Result<(), String>{
+fn bind_names(mut env: &mut Env, params: Expr, args: Expr) -> Result<()>{
     let mut phead = &params;
     let mut ahead = &args;
     let nil = &Expr::Nil;
@@ -203,29 +220,31 @@ fn bind_names(mut env: &mut Env, params: Expr, args: Expr) -> Result<(), String>
             (&Expr::Cons(ref pcar, ref pcdr), &Expr::Cons(ref acar, ref acdr)) => {
                 match pcar.deref().clone() {
                     Expr::Sym(ref name) => env.register(name.clone(), acar.deref().clone()),
-                    pcar => return Err(format!("illeagal form of params {:?}", pcar))
-                };
+                    pcar => return // Err(format!("illeagal form of params {:?}", pcar))
+                                      Err(E::Form)
+                };   
                 phead = pcdr.deref();
                 ahead = acdr.deref();
             },
-            _ => return Err(format!("ileagal form of funcall"))
+            _ => return // Err(format!("ileagal form of funcall"))
+                           Err(E::Form)
         }
     };
     Ok(())
 }
 
 
-fn k_car(_: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_car(_: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args, ((car, _), cons));
     Ok(car)
 }
 
-fn k_cdr(_: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_cdr(_: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args, ((_, cdr), cons));
     Ok(cdr)
 
 }
-fn funcall(mut env: &mut Env, f: &Proc, args: Expr) -> Result<Expr, String> {
+fn funcall(mut env: &mut Env, f: &Proc, args: Expr) -> Result<Expr> {
     match f {
         &Proc::Prim(prim) => {
             match prim {
@@ -252,31 +271,31 @@ fn funcall(mut env: &mut Env, f: &Proc, args: Expr) -> Result<Expr, String> {
     }
 }
 
-fn k_quote(_: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_quote(_: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args, (sexp, any));
     Ok(sexp)
 }
 
-fn k_feval(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_feval(mut env: &mut Env, args: Expr) -> Result<Expr> {
     match args {
         Expr::Cons(ref car, _) => Ok(Expr::Proc(try!(feval(env, car.deref().clone())))),
-        _ => Err(format!("unreachable"))
+        _ => unreachable!()
     }
 }
 
-fn f_lambda(_: &mut Env, args: Expr) -> Result<Proc, String> {
+fn f_lambda(_: &mut Env, args: Expr) -> Result<Proc> {
     match args {
         Expr::Cons(params, body) => Ok(Proc::Lambda(params, Rc::new(Expr::Cons(Rc::new(Expr::Sym("progn".to_string())), body)))),
-        _ => Err(format!("unreachable"))
+        _ => unreachable!()
     }
 }
 
-fn k_lambda(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_lambda(mut env: &mut Env, args: Expr) -> Result<Expr> {
     Ok(Expr::Proc(try!(f_lambda(env, args))))
 }
 
 
-fn k_progn(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_progn(mut env: &mut Env, args: Expr) -> Result<Expr> {
     let mut head = &args;
     let nil = &Expr::Nil;
     let mut res = Expr::Nil;
@@ -286,13 +305,14 @@ fn k_progn(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
                 res = try!(eval(env, car.deref().clone()));
                 head = cdr.deref();
             },
-            _ => return Err(format!("invalid form of progn or lambda"))
+            _ => return // Err(format!("invalid form of progn or lambda"))
+                           Err(E::Form)
         }
     };
     Ok(res)
 }
 
-fn k_fset(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_fset(mut env: &mut Env, args: Expr) -> Result<Expr> {
     get_args!(args, (s, any) (f, any));
     let s = try!(eval(env, s));
     let f = try!(feval(env, f));
@@ -301,7 +321,7 @@ fn k_fset(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     return Ok(Expr::Nil);
 }
 
-fn k_if(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
+fn k_if(mut env: &mut Env, args: Expr) -> Result<Expr> {
     // TODO: optional else clasue. Need optional argments.
     get_args!(args, (cnd, any) (thn, any) (els, any));
     let res = try!(eval(env, cnd));
@@ -312,7 +332,7 @@ fn k_if(mut env: &mut Env, args: Expr) -> Result<Expr, String> {
     }
 }
 
-fn feval(mut env: &mut Env, expr: Expr) -> Result<Proc, String> {
+fn feval(mut env: &mut Env, expr: Expr) -> Result<Proc> {
     match expr {
         Expr::Sym(ref sym) => {
             match env.ffind(sym) {
@@ -325,18 +345,21 @@ fn feval(mut env: &mut Env, expr: Expr) -> Result<Proc, String> {
             match op {
                 &Expr::Sym(ref sym) => match &sym[..] {
                     "lambda" => f_lambda(env, rest.deref().clone()),
-                    op => Err(format!("invalid expression '({:?} {:?})' found at function potision", op, rest))
+                    op => // Err(format!("invalid expression '({:?} {:?})' found at function potision", op, rest))
+                             Err(E::Form)
                 },
-                op => Err(format!("invalid expression '({:?} {:?})' found at function potision", op, rest))
+                op => // Err(format!("invalid expression '({:?} {:?})' found at function potision", op, rest))
+                         Err(E::Form)
             }
         }
         Expr::Proc(f) => Ok(f),
-        x => Err(format!("{:?} is not a function", x))
+        x => //Err(format!("{:?} is not a function", x))
+             Err(E::NotFunction)
     }
 }
 
 
-pub fn eval(mut env: &mut Env, expr: Expr) -> Result<Expr, String> {
+pub fn eval(mut env: &mut Env, expr: Expr) -> Result<Expr> {
     match expr {
         Expr::Nil |
         Expr::EOF |

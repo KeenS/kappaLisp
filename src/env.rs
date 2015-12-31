@@ -2,8 +2,13 @@ use std::collections::HashMap;
 use std::collections::LinkedList;
 
 use expr::{Expr, Proc, Prim};
+use error::Error as E;
 use read::read;
 use eval::eval;
+use std::result;
+
+
+pub type Result<T> = result::Result<T, E>;
 
 pub struct Env {
     global: HashMap<String, Expr>,
@@ -39,7 +44,7 @@ impl Env {
         env
     }
 
-    pub fn init(&mut self) -> Result<(), String>{
+    pub fn init(&mut self) -> Result<()>{
         let mut env = Self::new();
         try!(eval(&mut env, read(include_str!("assoc.lisp"))));
         Ok(())
@@ -78,7 +83,7 @@ impl Env {
     //     };
     // }
 
-    pub fn find(&self, name: &String)  -> Result<&Expr, String> {
+    pub fn find(&self, name: &String)  -> Result<&Expr> {
         for m in self.local.iter() {
             match m.get(name) {
                 Some(v) => return Ok(v),
@@ -87,11 +92,12 @@ impl Env {
         };
         match self.global.get(name) {
             Some(v) => Ok(v),
-            None => Err(format!("Variable {:} isn't bound", name))
+            None => //Err(format!("Variable {:} isn't bound", name))
+                Err(E::Unbound)
         }
     }
 
-    pub fn ffind(&self, name: &String)  -> Result<&Proc, String> {
+    pub fn ffind(&self, name: &String)  -> Result<&Proc> {
         for m in self.flocal.iter() {
             match m.get(name) {
                 Some(v) => return Ok(v),
@@ -101,7 +107,8 @@ impl Env {
         println!("{:?}", self.fglobal);
         match self.fglobal.get(name) {
             Some(v) => Ok(v),
-            None => Err(format!("Function {:} isn't bound", name))
+            None => //Err(format!("Function {:} isn't bound", name))
+                    Err(E::Unbound)
         }
     }
 
