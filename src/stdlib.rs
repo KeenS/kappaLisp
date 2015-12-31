@@ -4,7 +4,10 @@ use expr::{Expr, Type};
 use error::Error as E;
 use env::{Env, Result};
 use util::*;
-use eval::{funcall, eval};
+use eval::funcall;
+#[cfg(test)]
+use eval::eval;
+#[cfg(test)]
 use read::read;
 
 // since rust's macro cannot treat binop, work around macro is needed.

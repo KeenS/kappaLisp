@@ -1,6 +1,38 @@
-use expr::Expr;
+use std::rc::Rc;
+use std::ops::Deref;
+
+use expr::{Expr, Type};
 use error::Error as E;
 use env::{Env, Result};
+
+
+pub fn cons(car: Expr, cdr: Expr) -> Expr {
+    Expr::Cons(Rc::new(car), Rc::new(cdr))
+}
+
+pub fn list1(a1: Expr) -> Expr {
+    cons(a1, Expr::Nil)
+}
+pub fn list2(a1: Expr, a2: Expr) -> Expr {
+    cons(a1, list1(a2))
+}
+
+pub fn car(cons: &Expr) -> Result<Expr> {
+    match cons {
+        &Expr::Cons(ref car, _) => Ok(car.deref().clone()),
+        arg => Err(E::Type(Type::Cons, cons.clone()))
+    }
+}
+
+pub fn cdr(cons: &Expr) -> Result<Expr> {
+    match cons {
+        &Expr::Cons(_, ref cdr) => Ok(cdr.deref().clone()),
+        arg => Err(E::Type(Type::Cons, cons.clone()))
+    }
+}
+
+
+
 
 macro_rules! get_args_one {
     ($v:expr, Int) => (
@@ -129,7 +161,7 @@ pub fn f_foldr<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<
 
 pub fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
     where F: Fn(&mut Env, &Expr) -> Result<Expr>{
-    f_foldr(env, &|env, acc, x| Ok(Expr::cons(try!(f(env, x)), acc.clone()))
+    f_foldr(env, &|env, acc, x| Ok(cons(try!(f(env, x)), acc.clone()))
                  , &Expr::Nil, list)
 }
 

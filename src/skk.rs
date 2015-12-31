@@ -6,6 +6,7 @@ use std::ops::Deref;
 use expr::{Expr, Type};
 use error::Error as E;
 use env::{Env, Result};
+use util::*;
 #[cfg(test)]
 use read::read;
 #[cfg(test)]
@@ -54,7 +55,7 @@ pub fn k_skk_gadget_units_conversion(_: &mut Env, args: &Expr) -> Result<Expr> {
 fn test_skk_calc(){
     let mut env = Env::new();
     env.init();
-    env.register("skk-num-list".to_string(), Expr::list2(Expr::Int(3), Expr::Int(2)));
+    env.register("skk-num-list".to_string(), list2(Expr::Int(3), Expr::Int(2)));
     println!("{:?}", eval(&mut Env::new(), &read("(skk-calc '+)")));
     assert_eq!(eval(&mut env, &read("(skk-calc '+)")), Ok(Expr::Int(5)));
     assert_eq!(eval(&mut env, &read("(skk-calc '-)")), Ok(Expr::Int(1)));

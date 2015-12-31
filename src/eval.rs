@@ -103,7 +103,7 @@ fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (s, Any) (f, Any));
     let s = try!(eval(env, s));
     let f = try!(feval(env, f));
-    let tmp = Expr::cons(s, Expr::Nil);
+    let tmp = cons(s, Expr::Nil);
     get_args!(&tmp, (s, Sym));
     env.fregister(s.clone(), f.clone());
     return Ok(Expr::Nil);
@@ -199,8 +199,8 @@ fn test_progn(){
 
 #[test]
 fn test_lambda(){
-    assert_eq!(eval(&mut Env::new(), &read("(lambda (x) x)")), Ok(Expr::Proc(Proc::Lambda(Rc::new(Expr::list1(Expr::Sym("x".to_string()))),
-                                                                           Rc::new(Expr::list2(Expr::Sym("progn".to_string()), Expr::Sym("x".to_string())))))));
+    assert_eq!(eval(&mut Env::new(), &read("(lambda (x) x)")), Ok(Expr::Proc(Proc::Lambda(Rc::new(list1(Expr::Sym("x".to_string()))),
+                                                                           Rc::new(list2(Expr::Sym("progn".to_string()), Expr::Sym("x".to_string())))))));
     assert_eq!(eval(&mut Env::new(), &read("((lambda (x) (+ x x)) 1)")), Ok(Expr::Int(2)))
 }
 

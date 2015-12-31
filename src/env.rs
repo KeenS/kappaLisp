@@ -46,7 +46,7 @@ impl Env {
 
     pub fn init(&mut self) -> Result<()>{
         let mut env = Self::new();
-//        try!(eval(&mut env, read(include_str!("assoc.lisp"))));
+        try!(eval(&mut env, &read(include_str!("assoc.lisp"))));
         Ok(())
     }
 

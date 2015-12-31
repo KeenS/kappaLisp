@@ -1,8 +1,8 @@
 use std::str::Chars;
 use std::iter::Peekable;
 
-//use mdo::option::{bind, ret};
 use expr::Expr;
+use util::*;
 
 macro_rules! try_opt {
     ($e: expr) => (
@@ -104,7 +104,7 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     try_opt!(input.peek());
     let cdr = read_list(input, '(');
     match (car, cdr) {
-        (Some(car), Some(cdr)) => Some(Expr::cons(car, cdr)),
+        (Some(car), Some(cdr)) => Some(cons(car, cdr)),
         _ => None
     }
         
@@ -112,12 +112,12 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
 
 fn read_quote(mut input: &mut Peekable<Chars>, _: char)  -> Option<Expr> {
     let v =  try_opt!(read_aux(input, ' '));
-    Some(Expr::list2(Expr::Sym("quote".to_string()), v))
+    Some(list2(Expr::Sym("quote".to_string()), v))
 }
 
 fn read_function(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let v = try_opt!(read_aux(input, ' '));
-    Some(Expr::list2(Expr::Sym("function".to_string()), v))
+    Some(list2(Expr::Sym("function".to_string()), v))
 }
 
 fn read_dispatch(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
@@ -169,8 +169,8 @@ fn test_read_int() {
 #[test]
 fn test_read_list(){
     assert_eq!(read("()"), (Expr::Nil));
-    assert_eq!(read("(1)"), (Expr::cons(Expr::Int(1), Expr::Nil)));
-    assert_eq!(read("(1 2)"), (Expr::cons(Expr::Int(1), Expr::cons(Expr::Int(2),Expr::Nil))));
+    assert_eq!(read("(1)"), (list1(Expr::Int(1))));
+    assert_eq!(read("(1 2)"), (list2(Expr::Int(1), Expr::Int(2))));
 }
 
 
@@ -191,21 +191,21 @@ fn test_read_string(){
     assert_eq!(read("\"str123ing\""), (Expr::Str("str123ing".to_string())));
     assert_eq!(read("\"()string\""), (Expr::Str("()string".to_string())));
     assert_eq!(read("\"123string\""), (Expr::Str("123string".to_string())));
-    assert_eq!(read("(\"string\")"), (Expr::list1(Expr::Str("string".to_string()))));
+    assert_eq!(read("(\"string\")"), (list1(Expr::Str("string".to_string()))));
 }
 
 #[test]
 fn test_read_quote(){
-    assert_eq!(read("'1"), (Expr::list2(Expr::Sym("quote".to_string()), Expr::Int(1))));
-    assert_eq!(read("'symbol"), (Expr::list2(Expr::Sym("quote".to_string()), Expr::Sym("symbol".to_string()))));
-    assert_eq!(read("'\"string\""), (Expr::list2(Expr::Sym("quote".to_string()), Expr::Str("string".to_string()))));
-    assert_eq!(read("'(1 2)"), (Expr::list2(Expr::Sym("quote".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
+    assert_eq!(read("'1"), (list2(Expr::Sym("quote".to_string()), Expr::Int(1))));
+    assert_eq!(read("'symbol"), (list2(Expr::Sym("quote".to_string()), Expr::Sym("symbol".to_string()))));
+    assert_eq!(read("'\"string\""), (list2(Expr::Sym("quote".to_string()), Expr::Str("string".to_string()))));
+    assert_eq!(read("'(1 2)"), (list2(Expr::Sym("quote".to_string()), list2(Expr::Int(1), Expr::Int(2)))))
 }
 
 #[test]
 fn test_read_function(){
-    assert_eq!(read("#'1"), (Expr::list2(Expr::Sym("function".to_string()), Expr::Int(1))));
-    assert_eq!(read("#'symbol"), (Expr::list2(Expr::Sym("function".to_string()), Expr::Sym("symbol".to_string()))));
-    assert_eq!(read("#'\"string\""), (Expr::list2(Expr::Sym("function".to_string()), Expr::Str("string".to_string()))));
-    assert_eq!(read("#'(1 2)"), (Expr::list2(Expr::Sym("function".to_string()), Expr::list2(Expr::Int(1), Expr::Int(2)))))
+    assert_eq!(read("#'1"), (list2(Expr::Sym("function".to_string()), Expr::Int(1))));
+    assert_eq!(read("#'symbol"), (list2(Expr::Sym("function".to_string()), Expr::Sym("symbol".to_string()))));
+    assert_eq!(read("#'\"string\""), (list2(Expr::Sym("function".to_string()), Expr::Str("string".to_string()))));
+    assert_eq!(read("#'(1 2)"), (list2(Expr::Sym("function".to_string()), list2(Expr::Int(1), Expr::Int(2)))))
 }
