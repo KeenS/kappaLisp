@@ -46,6 +46,7 @@ pub fn funcall(mut env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
                 Prim::Cdr => k_cdr(env, args),
                 Prim::List => k_list(env, args),
                 Prim::EqualP => k_equal_p(env, args),
+                Prim::StringToNumber => k_string_to_number(env, args),
                 Prim::CurrentTimeString => k_current_time_string(env, args),
                 Prim::SkkCalc => skk::k_skk_calc(env, args),
             }

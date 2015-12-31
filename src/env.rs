@@ -41,6 +41,7 @@ impl Env {
         env.fregister("cdr".to_string(), Proc::Prim(Prim::Cdr));
         env.fregister("list".to_string(), Proc::Prim(Prim::List));
         env.fregister("equal?".to_string(), Proc::Prim(Prim::EqualP));
+        env.fregister("string-to-number".to_string(), Proc::Prim(Prim::StringToNumber));
         env.fregister("current-time-string".to_string(), Proc::Prim(Prim::CurrentTimeString));
         env.fregister("skk-calc".to_string(), Proc::Prim(Prim::SkkCalc));
         env

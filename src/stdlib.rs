@@ -99,6 +99,15 @@ pub fn k_equal_p(_: &mut Env, args: &Expr) -> Result<Expr> {
         
 }
 
+pub fn k_string_to_number(_: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args, (s, Str));
+    match s.parse() {
+        // TODO: handle float case
+        Ok(i) => Ok(Expr::Int(i)),
+        Err(_) => Err(E::InvalidArgument(args.clone()))
+    }
+}
+
 
 pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args);
@@ -198,6 +207,12 @@ fn test_equal_p() {
 }
 
 
+#[test]
+fn test_string_to_number() {
+    assert_eq!(eval(&mut Env::new(), &read("(string-to-number \"1\")")), Ok(Expr::Int(1)));
+}
+
+// TODO: test current-time-string
 #[test]
 fn test_assoc() {
     let mut env = Env::new();
