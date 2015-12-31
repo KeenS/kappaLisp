@@ -85,6 +85,17 @@ pub fn k_list(_: &mut Env, args: &Expr) -> Result<Expr> {
     Ok(args.clone())
 }
 
+pub fn k_equal_p(_: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args, (x, Any) (y, Any));
+    if x == y {
+        // TODO: return `t`
+        Ok(Expr::Int(1))
+    } else {
+        Ok(Expr::Nil)
+    }
+        
+}
+
 
 pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args);
@@ -169,4 +180,23 @@ fn test_list() {
     assert_eq!(eval(&mut Env::new(), &read("(list)")), Ok(Expr::Nil));
     assert_eq!(eval(&mut Env::new(), &read("(list 1)")), Ok(list1(Expr::Int(1))));
     assert_eq!(eval(&mut Env::new(), &read("(list 1 2)")), Ok(list2(Expr::Int(1), Expr::Int(2))));
+}
+
+#[test]
+fn test_equal_p() {
+    assert_eq!(eval(&mut Env::new(), &read("(equal? 1 1)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), &read("(equal? 'sym 'sym)")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), &read("(equal? \"str\" \"str\")")), Ok(Expr::Int(1)));
+    assert_eq!(eval(&mut Env::new(), &read("(equal? 1 \"str\")")), Ok(Expr::Nil));
+    assert_eq!(eval(&mut Env::new(), &read("(equal? 'sym \"str\")")), Ok(Expr::Nil));
+    assert_eq!(eval(&mut Env::new(), &read("(equal? (list \"str\") \"str\")")), Ok(Expr::Nil));
+}
+
+
+#[test]
+fn test_assoc() {
+    let mut env = Env::new();
+    env.init().unwrap();
+    assert_eq!(eval(&mut env, &read("(cdr (assoc 'two '((one . 1) (two . 2))))")), Ok(Expr::Int(2)));
+    
 }

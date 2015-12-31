@@ -1,5 +1,6 @@
 use std::str::Chars;
 use std::iter::Peekable;
+use std::ops::Deref;
 
 use expr::Expr;
 use util::*;
@@ -120,8 +121,15 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
 
     let c = try_opt!(peek_nonwhitespaces(input, ' '));
     let cdr = if c == '.' {
-        let _ = try_opt!(next_nonwhitespaces(input, ' '));
-        read_aux(input, ' ')
+        let _ = try_opt!(next_nonwhitespaces(input, ' '));// == 'c'
+        match try_opt!(read_list(input, '(')) {
+            Expr::Cons(ref e, ref nil) => if nil.deref() == &Expr::Nil {
+                Some(e.deref().clone())
+            }else {
+                None
+            },
+            _ =>  None
+        }
     } else {
         read_list(input, '(')
     };
@@ -205,6 +213,7 @@ fn test_read_list(){
     assert_eq!(read("(1 2)"), (list2(Expr::Int(1), Expr::Int(2))));
     assert_eq!(read("(1 . 2)"), (cons(Expr::Int(1), Expr::Int(2))));
     assert_eq!(read("(1 2 . 3)"), (cons(Expr::Int(1), cons(Expr::Int(2), Expr::Int(3)))));
+    assert_eq!(read("'(1 (2 . 3))"), list2(Expr::Sym("quote".to_string()), (list2(Expr::Int(1), cons(Expr::Int(2), Expr::Int(3))))));
 }
 
 

@@ -42,6 +42,7 @@ pub enum Prim {
     Car,
     Cdr,
     List,
+    EqualP,
     CurrentTimeString,
     SkkCalc,
 }
@@ -101,6 +102,7 @@ impl fmt::Display for Prim {
             Prim::Car => write!(f, "car"),
             Prim::Cdr => write!(f, "cdr"),
             Prim::List => write!(f, "list"),
+            Prim::EqualP => write!(f, "equal?"),
             Prim::CurrentTimeString => write!(f, "current-time-string"),
             Prim::SkkCalc => write!(f, "skk-calc"),
         }

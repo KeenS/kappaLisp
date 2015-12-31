@@ -41,10 +41,11 @@ pub fn funcall(mut env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
                 Prim::Mul => k_mul(env, args),
                 Prim::Concat => k_concat(env, args),
                 Prim::Funcall => k_funcall(env, args),
-                Prim::List => k_list(env, args),
                 Prim::Cons => k_cons(env, args),
                 Prim::Car => k_car(env, args),
                 Prim::Cdr => k_cdr(env, args),
+                Prim::List => k_list(env, args),
+                Prim::EqualP => k_equal_p(env, args),
                 Prim::CurrentTimeString => k_current_time_string(env, args),
                 Prim::SkkCalc => skk::k_skk_calc(env, args),
             }
@@ -111,9 +112,9 @@ fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (s, Any) (f, Any));
+    get_args!(args, (s, Any) (e, Any));
     let s = try!(eval(env, s));
-    let e = try!(eval(env, f));
+    let e = try!(eval(env, e));
     let tmp = list1(s);
     get_args!(&tmp, (s, Sym));
     env.register(s.clone(), e.clone());
@@ -172,6 +173,7 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
             let cdr = cdr.deref();
             match car {
                 &Expr::Sym(ref sym) => match &sym[..] {
+                    // Eval special forms first
                     "quote" => k_quote(env, cdr),
                     "function" => k_feval(env, cdr),
                     "lambda" => k_lambda(env, cdr),

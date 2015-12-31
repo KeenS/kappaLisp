@@ -1,9 +1,8 @@
 (fset 'assoc (lambda (key list)
                (if list
-                (let ((c (car list)))
-                  (if (equal? key (car c))
-                      (cdr c)
-                      (assoc key (cdr list))))
+                (if (equal? key (car (car list)))
+                    (car list)
+                    (assoc key (cdr list)))
                 nil)))
 
 (fset 'skk-gadget-units-conversion
@@ -21,3 +20,4 @@
 
        ("inch" ("feet" . 0.5)
         ("cm" . 2.54))))
+
