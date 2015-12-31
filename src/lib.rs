@@ -7,3 +7,4 @@ pub mod env;
 pub mod base;
 pub mod stdlib;
 pub mod skk;
+pub mod kappa_lisp;

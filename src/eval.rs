@@ -4,8 +4,6 @@ use std::ops::Deref;
 use ::expr::{Expr, Type, Proc, Error as E, Result};
 use ::env::Env;
 use ::util::*;
-#[cfg(test)]
-use ::read::read;
 
 fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
     let mut phead = params;
@@ -181,49 +179,3 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
     }
 }
 
-
-#[test]
-fn test_atom(){
-    assert_eq!(eval(&mut Env::new(), &read("1")), Ok(Expr::Int(1)));
-    assert_eq!(eval(&mut Env::new(), &read("()")), Ok(Expr::Nil));
-    assert_eq!(eval(&mut Env::new(), &read("")), Ok(Expr::EOF));
-    assert_eq!(eval(&mut Env::new(), &read("\"string\"")), Ok(Expr::Str("string".to_string())));
-}
-// TODO: test `function`
-
-
-#[test]
-fn test_progn(){
-    assert_eq!(eval(&mut Env::new(), &read("(progn 1 2)")), Ok(Expr::Int(2)));
-    assert_eq!(eval(&mut Env::new(), &read("(progn (+ 1 2) (+ 2 3))")), Ok(Expr::Int(5)));
-}
-
-#[test]
-fn test_lambda(){
-    assert_eq!(eval(&mut Env::new(), &read("(lambda (x) x)")), Ok(Expr::Proc(Proc::Lambda(Rc::new(list1(Expr::Sym("x".to_string()))),
-                                                                           Rc::new(list2(Expr::Sym("progn".to_string()), Expr::Sym("x".to_string())))))));
-    assert_eq!(eval(&mut Env::new(), &read("((lambda (x) (+ x x)) 1)")), Ok(Expr::Int(2)))
-}
-
-
-#[test]
-fn test_fset(){
-    let mut env = Env::new();
-    assert_eq!(eval(&mut env, &read("(fset 'add2 (lambda (x) (+ x 2)))")), Ok(Expr::Nil));
-    assert_eq!(eval(&mut env, &read("(add2 2)")), Ok(Expr::Int(4)));
-}
-
-
-#[test]
-fn test_set() {
-    let mut env = Env::new();
-    assert_eq!(eval(&mut env, &read("(set 'foo (+ 1 2 3))")), Ok(Expr::Nil));
-    assert_eq!(eval(&mut env, &read("foo")), Ok(Expr::Int(6)));
-    
-}
-
-#[test]
-fn test_if() {
-    assert_eq!(eval(&mut Env::new(), &read("(if () 1 2)")), Ok(Expr::Int(2)));
-    assert_eq!(eval(&mut Env::new(), &read("(if 1 1 2)")), Ok(Expr::Int(1)));
-}

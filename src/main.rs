@@ -1,12 +1,8 @@
 extern crate kappa_lisp;
-use kappa_lisp::env::Env;
-use kappa_lisp::read::read;
-use kappa_lisp::eval::eval;
+use kappa_lisp::kappa_lisp::run_new;
 
 
 fn main() {
-    let env = &mut Env::new();
-    let expr = read("(current-time-string)");
-    let expr_ = eval(env, &expr).unwrap();
+    let expr_ = run_new("(current-time-string)").unwrap();
     println!("{}", expr_);
 }

@@ -2,9 +2,6 @@ use std::collections::HashMap;
 use std::collections::LinkedList;
 
 use ::expr::{Expr, Proc, Error as E, Result};
-use ::base;
-use ::skk;
-use ::stdlib;
 
 pub struct Env {
     global: HashMap<String, Expr>,
@@ -16,17 +13,12 @@ pub struct Env {
 
 impl Env {
     pub fn new() -> Env {
-        let mut env = Env {
+        Env {
             global: HashMap::new(),
             local: LinkedList::new(),
             fglobal: HashMap::new(),
             flocal: LinkedList::new()
-        };
-
-        base::init(&mut env).unwrap();
-        stdlib::init(&mut env).unwrap();
-        skk::init(&mut env).unwrap();
-        env
+        }
     }
 
     pub fn new_local(&mut self) {
