@@ -104,6 +104,12 @@ macro_rules! get_args_one {
             hd => Err(E::Type(Type::Nil, hd.clone()))
         }
     );
+    ($v:expr, Bool) => (
+        match $v {
+            &Expr::Nil => Ok(false),
+            _ => Ok(true)
+        }
+    );
     ($v:expr, Cons) => (
         match $v {
             &Expr::Cons(ref car, ref cdr) => Ok((car.deref(), cdr.deref())),
