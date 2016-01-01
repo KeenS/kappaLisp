@@ -4,13 +4,15 @@ pub use ::env::Env;
 pub use ::read::read;
 use ::base;
 use ::stdlib;
+use ::datetime;
 use ::skk;
     
 
 pub fn init(mut env: &mut Env) -> Result<()> {
-    base::init(&mut env).unwrap();
-    stdlib::init(&mut env).unwrap();
-    skk::init(&mut env).unwrap();
+    try!(base::init(&mut env));
+    try!(datetime::init(&mut env));
+    try!(stdlib::init(&mut env));
+    try!(skk::init(&mut env));
     Ok(())
 }
     

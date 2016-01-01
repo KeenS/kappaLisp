@@ -104,7 +104,3 @@ fn test_substring() {
     assert_eq!(run_new("(substring \"abcdefg\" 0 3)"), Ok(kstr("abc")));
     assert_eq!(run_new("(substring \"abcdefg\" 4 6)"), Ok(kstr("ef")));
 }
-
-
-// TODO: test current-time-string
-
