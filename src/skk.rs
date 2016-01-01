@@ -58,15 +58,27 @@ pub fn k_skk_current_date(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 pub fn k_skk_default_current_date(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args,
               (date_information, Any)
-              (format, Str)
+              (format, Nullable Str)
               (num_type, Int)
-              (gengo, Any)//bool
-              (gengo_index, Any)
-              (month_alist_index, Any)
-              (dayofweek_alist_index, Any)
-              &optional (and_time, Any) // bool
+              (gengo, Bool)
+              (gengo_index, Nullable Int)
+              (month_alist_index, Nullable Int)
+              (dayofweek_alist_index, Nullable Int)
+              &optional (and_time, Bool)
               );
-    Ok(knil())
+    get_args!(date_information, (year, Str) (month, Str) (day, Str) (day_of_week, Str)
+              (hour, Str) (minute, Str) (second, Str));
+    let res = match and_time {
+        None | Some(false) => {
+            let format = format.map_or("%s年%s月%s日(%s)", |s| &s);
+            kstr(format)
+        },
+        _ => {
+            let format = format.map_or("%s年%s月%s日(%s)%s時%s分%s秒", |s| &s);
+            kstr(format)
+        }
+    };
+    Ok(res)
 }
 
 
