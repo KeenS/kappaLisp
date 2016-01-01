@@ -65,7 +65,6 @@ impl Env {
                 None => ()
             }
         };
-        println!("{:?}", self.fglobal);
         match self.fglobal.get(name) {
             Some(v) => Ok(v),
             None => Err(E::Unbound(name.clone()))
