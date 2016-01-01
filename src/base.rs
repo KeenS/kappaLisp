@@ -1,7 +1,7 @@
 extern crate time;
 use std::ops::Deref;
 
-use ::expr::{Expr, Type, Kfloat, Result, Error as E};
+use ::expr::{Expr, Type, Kint, Kfloat, Result, Error as E};
 use ::env::{Env};
 use ::util::*;
 use ::eval::funcall;
@@ -65,7 +65,7 @@ pub fn k_funcall(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 
 pub fn k_cons(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (car, Any) (cdr, Any));
-    Ok(cons(car.clone(), cdr.clone()))
+    Ok(kcons(car.clone(), cdr.clone()))
 }
 
 pub fn k_car(_: &mut Env, args: &Expr) -> Result<Expr> {
@@ -114,7 +114,7 @@ pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
 pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (s, Str) (start, Int) (end, Int));
     let len = s.len();
-    if 0 <= start && start <= end && end < (len as isize) {
+    if 0 <= start && start <= end && end < (len as Kint) {
         let start = start as usize;
         let end = end as usize;
         Ok(Expr::Str((&s[start..end]).to_string()))
@@ -124,20 +124,20 @@ pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 pub fn init(mut env: &mut Env) -> Result<()>{
-    env.fregister("+",       procedure("k_add", k_add));
-    env.fregister("-",       procedure("k_sub", k_sub));
-    env.fregister("/",       procedure("k_div", k_div));
-    env.fregister("*",       procedure("k_mul", k_mul));
-    env.fregister("concat",  procedure("k_concat", k_concat));
-    env.fregister("funcall", procedure("k_funcall", k_funcall));
-    env.fregister("cons",    procedure("k_cons", k_cons));
-    env.fregister("car",     procedure("k_car", k_car));
-    env.fregister("cdr",     procedure("k_cdr", k_cdr));
-    env.fregister("list",    procedure("k_list",k_list));
-    env.fregister("equal?",  procedure("k_equal_p", k_equal_p));
-    env.fregister("string-to-number", procedure("k_string_to_number", k_string_to_number));
-    env.fregister("substring", procedure("k_substring", k_substring));
-    env.fregister("current-time-string", procedure("k_current_time_string", k_current_time_string));
+    env.fregister("+",       kprim("k_add", k_add));
+    env.fregister("-",       kprim("k_sub", k_sub));
+    env.fregister("/",       kprim("k_div", k_div));
+    env.fregister("*",       kprim("k_mul", k_mul));
+    env.fregister("concat",  kprim("k_concat", k_concat));
+    env.fregister("funcall", kprim("k_funcall", k_funcall));
+    env.fregister("cons",    kprim("k_cons", k_cons));
+    env.fregister("car",     kprim("k_car", k_car));
+    env.fregister("cdr",     kprim("k_cdr", k_cdr));
+    env.fregister("list",    kprim("k_list",k_list));
+    env.fregister("equal?",  kprim("k_equal_p", k_equal_p));
+    env.fregister("string-to-number", kprim("k_string_to_number", k_string_to_number));
+    env.fregister("substring", kprim("k_substring", k_substring));
+    env.fregister("current-time-string", kprim("k_current_time_string", k_current_time_string));
     Ok(())
 }
 

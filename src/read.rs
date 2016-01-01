@@ -2,7 +2,7 @@ use std::str::{Chars, FromStr};
 use std::iter::Peekable;
 use std::ops::Deref;
 
-use ::expr::{Expr, Kfloat};
+use ::expr::{Expr, Kfloat, Kint};
 use ::util::*;
 
 macro_rules! try_opt {
@@ -43,7 +43,7 @@ fn is_delimiter(c: char) -> bool {
 }
 
 
-fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<isize> {
+fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Kint> {
     let mut acc = String::new();
     acc.push(first);
     while input.peek().unwrap_or(&' ').is_digit(radix) {
@@ -53,10 +53,10 @@ fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option
         };
         acc.push(c);
     }
-    Some(isize::from_str_radix(&acc[..], radix).unwrap())
+    Some(Kint::from_str_radix(&acc[..], radix).unwrap())
 }
 
-fn read_int(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<isize> {
+fn read_int(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Kint> {
     match first {
         '0'...'9' => Some(try_opt!(read_uint(input, first, radix))),
         _ =>{
@@ -162,7 +162,7 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
         read_list(input, '(')
     };
     match (car, cdr) {
-        (Some(car), Some(cdr)) => Some(cons(car, cdr)),
+        (Some(car), Some(cdr)) => Some(kcons(car, cdr)),
         _ => None
     }
     

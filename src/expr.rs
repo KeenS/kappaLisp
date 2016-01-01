@@ -7,11 +7,12 @@ use std::result;
 use ::env::Env;
 
 pub type Kfloat = f32;
+pub type Kint = isize;
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Expr {
-    Int(isize),
+    Int(Kint),
     Float(Kfloat),
     Cons(Rc<Expr>, Rc<Expr>),
     Nil,

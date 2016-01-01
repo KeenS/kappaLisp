@@ -22,6 +22,6 @@ pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
 
 
 pub fn init(mut env: &mut Env) -> Result<()>{
-    env.fregister("skk-calc", procedure("k_skk_calc", k_skk_calc));
+    env.fregister("skk-calc", kprim("k_skk_calc", k_skk_calc));
     Ok(())
 }

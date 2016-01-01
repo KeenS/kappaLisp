@@ -1,18 +1,52 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use ::expr::{Expr, Type, Proc, Error as E, Result};
+use ::expr::{Expr,Kint,  Kfloat, Type, Proc, Error as E, Result};
 use ::env::Env;
 
-pub fn cons(car: Expr, cdr: Expr) -> Expr {
+pub fn kint(i: Kint) -> Expr {
+    Expr::Int(i)
+}
+
+pub fn kfloat(f: Kfloat) -> Expr {
+    Expr::Float(f)
+}
+
+pub fn kcons(car: Expr, cdr: Expr) -> Expr {
     Expr::Cons(Rc::new(car), Rc::new(cdr))
 }
 
+pub fn knil() -> Expr {
+    Expr::Nil
+}
+
+
+pub fn ksym<S: Into<String>>(s: S) -> Expr {
+    Expr::Sym(s.into())
+}
+
+pub fn kstr<S: Into<String>>(s: S) -> Expr {
+    Expr::Str(s.into())
+}
+
+pub fn kproc(p: Proc) -> Expr {
+    Expr::Proc(p)
+}
+
+pub fn klambda(param: Expr, body: Expr) -> Proc {
+    Proc::Lambda(Rc::new(param), Rc::new(body))
+}
+
+pub fn kprim<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + Sized>(name: S, f: F) -> Proc{
+    Proc::Prim(name.into(), Rc::new(f))
+}
+
+
 pub fn list1(a1: Expr) -> Expr {
-    cons(a1, Expr::Nil)
+    kcons(a1, Expr::Nil)
 }
 pub fn list2(a1: Expr, a2: Expr) -> Expr {
-    cons(a1, list1(a2))
+    kcons(a1, list1(a2))
 }
 
 pub fn car(cons: &Expr) -> Result<Expr> {
@@ -29,10 +63,6 @@ pub fn cdr(cons: &Expr) -> Result<Expr> {
     }
 }
 
-
-pub fn procedure<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + Sized>(name: S, f: F) -> Proc{
-    Proc::Prim(name.into(), Rc::new(f))
-}
 
 
 macro_rules! get_args_one {
@@ -169,7 +199,7 @@ pub fn f_foldr<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<
 
 pub fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
     where F: Fn(&mut Env, &Expr) -> Result<Expr>{
-    f_foldr(env, &|env, acc, x| Ok(cons(try!(f(env, x)), acc.clone()))
+    f_foldr(env, &|env, acc, x| Ok(kcons(try!(f(env, x)), acc.clone()))
                  , &Expr::Nil, list)
 }
 
