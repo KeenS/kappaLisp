@@ -146,6 +146,20 @@ macro_rules! gen_match {
                 args => return Err(E::InvalidArgument(args.clone()))
             };
             );
+    ($args: expr, ($var: pat, opt $ident: tt) $($other:tt) *) =>
+        (
+            match $args {
+                &Expr::Cons(ref hd, ref tl) => {
+                    let v = try!(get_args_one!(hd.deref(), $ident));
+                    (Some(v), gen_match!(tl.deref(), $($other)*))
+                },
+                &Expr::Nil => {
+                    (None, gen_match!($args, $($other)*))
+                    
+                },
+                args => return Err(E::InvalidArgument(args.clone()))
+            };
+            );
     ($args: expr, ) => (
         match $args {
             &Expr::Nil => (),
@@ -159,6 +173,10 @@ macro_rules! get_args {
     ($args: expr, ($var: pat, $ident: tt) $($other:tt) *) =>
         (
             let gen_pattern!(($var, $ident) $($other)*) = gen_match!($args, ($var, $ident) $($other)*)
+            ) ;
+    ($args: expr, ($var: pat, opt $ident: tt) $($other:tt) *) =>
+        (
+            let gen_pattern!(($var, $ident) $($other)*) = gen_match!($args, ($var, opt $ident) $($other)*)
             ) ;
     ($args: expr, ) => (
         let () = gen_match!($args,)
