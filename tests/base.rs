@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate kappa_lisp;
 use kappa_lisp::{run_new};
 use kappa_lisp::util::*;
@@ -70,15 +71,15 @@ fn test_car() {
 #[test]
 fn test_cdr() {
     assert_eq!(run_new("(cdr (cons 1 2))"), Ok(kint(2)));
-    assert_eq!(run_new("(cdr (list 1 2))"), Ok(list1(kint(2))));
+    assert_eq!(run_new("(cdr (list 1 2))"), Ok(klist!(kint(2))));
 }
 
 
 #[test]
 fn test_list() {
     assert_eq!(run_new("(list)"), Ok(knil()));
-    assert_eq!(run_new("(list 1)"), Ok(list1(kint(1))));
-    assert_eq!(run_new("(list 1 2)"), Ok(list2(kint(1), kint(2))));
+    assert_eq!(run_new("(list 1)"), Ok(klist!(kint(1))));
+    assert_eq!(run_new("(list 1 2)"), Ok(klist!(kint(1), kint(2))));
 }
 
 #[test]

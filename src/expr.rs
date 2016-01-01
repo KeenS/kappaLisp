@@ -3,6 +3,7 @@ use std::fmt;
 use std::fmt::{Display, Formatter, Error as E};
 use std::error;
 use std::result;
+use std::convert::From;
 
 use ::env::Env;
 
@@ -40,6 +41,29 @@ pub enum Proc {
     Lambda(Rc<Expr>, Rc<Expr>),
     Prim(String, Rc<Fn(&mut Env, &Expr) -> Result<Expr>>)
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+    InvalidArgument(Expr),
+    Type(Type, Expr),
+    ArityShort,
+    ArityExceed,
+    Form(Expr),
+    NotFunction(Expr),
+    Unbound(String),
+    User(String)
+}
+
+
+
+impl From<Kint> for Expr {fn from(i: Kint) -> Self {Expr::Int(i)}}
+impl From<Kfloat> for Expr {fn from(f: Kfloat) -> Self {Expr::Float(f)}}
+impl <'a >From<&'a str> for Expr {fn from(s: &str) -> Self {Expr::Str(s.to_string())}}
+impl From<String> for Expr {fn from(s: String) -> Self {Expr::Str(s)}}
+
+
+
+
 
 impl PartialEq for Proc {
     fn eq(&self, other: &Self) -> bool {
@@ -100,19 +124,6 @@ impl fmt::Display for Proc {
             Proc::Prim(name, _) => write!(f, "{}", name)
         }
     }
-}
-
-
-#[derive(Debug, PartialEq)]
-pub enum Error {
-    InvalidArgument(Expr),
-    Type(Type, Expr),
-    ArityShort,
-    ArityExceed,
-    Form(Expr),
-    NotFunction(Expr),
-    Unbound(String),
-    User(String)
 }
 
 

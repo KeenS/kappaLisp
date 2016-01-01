@@ -86,7 +86,7 @@ fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (s, Any) (f, Any));
     let s = try!(eval(env, s));
     let f = try!(feval(env, f));
-    let tmp = list1(s);
+    let tmp = klist!(s);
     get_args!(&tmp, (s, Sym));
     env.fregister(s.clone(), f.clone());
     return Ok(Expr::Nil);
@@ -96,7 +96,7 @@ fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (s, Any) (e, Any));
     let s = try!(eval(env, s));
     let e = try!(eval(env, e));
-    let tmp = list1(s);
+    let tmp = klist!(s);
     get_args!(&tmp, (s, Sym));
     env.register(s.clone(), e.clone());
     return Ok(Expr::Nil);

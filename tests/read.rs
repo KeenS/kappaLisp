@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate kappa_lisp;
 use kappa_lisp::{read};
 use kappa_lisp::util::*;
@@ -35,11 +36,11 @@ fn test_read_float() {
 #[test]
 fn test_read_list(){
     assert_eq!(read("()"), (knil()));
-    assert_eq!(read("(1)"), (list1(kint(1))));
-    assert_eq!(read("(1 2)"), (list2(kint(1), kint(2))));
+    assert_eq!(read("(1)"), (klist!(kint(1))));
+    assert_eq!(read("(1 2)"), (klist!(kint(1), kint(2))));
     assert_eq!(read("(1 . 2)"), (kcons(kint(1), kint(2))));
     assert_eq!(read("(1 2 . 3)"), (kcons(kint(1), kcons(kint(2), kint(3)))));
-    assert_eq!(read("'(1 (2 . 3))"), list2(ksym("quote"), (list2(kint(1), kcons(kint(2), kint(3))))));
+    assert_eq!(read("'(1 (2 . 3))"), klist!(ksym("quote"), (klist!(kint(1), kcons(kint(2), kint(3))))));
 }
 
 
@@ -60,21 +61,21 @@ fn test_read_string(){
     assert_eq!(read("\"str123ing\""), (kstr("str123ing")));
     assert_eq!(read("\"()string\""), (kstr("()string")));
     assert_eq!(read("\"123string\""), (kstr("123string")));
-    assert_eq!(read("(\"string\")"), (list1(kstr("string"))));
+    assert_eq!(read("(\"string\")"), (klist!(kstr("string"))));
 }
 
 #[test]
 fn test_read_quote(){
-    assert_eq!(read("'1"), (list2(ksym("quote"), kint(1))));
-    assert_eq!(read("'symbol"), (list2(ksym("quote"), ksym("symbol"))));
-    assert_eq!(read("'\"string\""), (list2(ksym("quote"), kstr("string"))));
-    assert_eq!(read("'(1 2)"), (list2(ksym("quote"), list2(kint(1), kint(2)))))
+    assert_eq!(read("'1"), (klist!(ksym("quote"), kint(1))));
+    assert_eq!(read("'symbol"), (klist!(ksym("quote"), ksym("symbol"))));
+    assert_eq!(read("'\"string\""), (klist!(ksym("quote"), kstr("string"))));
+    assert_eq!(read("'(1 2)"), (klist!(ksym("quote"), klist!(kint(1), kint(2)))))
 }
 
 #[test]
 fn test_read_function(){
-    assert_eq!(read("#'1"), (list2(ksym("function"), kint(1))));
-    assert_eq!(read("#'symbol"), (list2(ksym("function"), ksym("symbol"))));
-    assert_eq!(read("#'\"string\""), (list2(ksym("function"), kstr("string"))));
-    assert_eq!(read("#'(1 2)"), (list2(ksym("function"), list2(kint(1), kint(2)))))
+    assert_eq!(read("#'1"), (klist!(ksym("function"), kint(1))));
+    assert_eq!(read("#'symbol"), (klist!(ksym("function"), ksym("symbol"))));
+    assert_eq!(read("#'\"string\""), (klist!(ksym("function"), kstr("string"))));
+    assert_eq!(read("#'(1 2)"), (klist!(ksym("function"), klist!(kint(1), kint(2)))))
 }

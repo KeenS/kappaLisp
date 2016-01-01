@@ -42,13 +42,6 @@ pub fn kprim<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + 
 }
 
 
-pub fn list1(a1: Expr) -> Expr {
-    kcons(a1, Expr::Nil)
-}
-pub fn list2(a1: Expr, a2: Expr) -> Expr {
-    kcons(a1, list1(a2))
-}
-
 pub fn car(cons: &Expr) -> Result<Expr> {
     match cons {
         &Expr::Cons(ref car, _) => Ok(car.deref().clone()),
@@ -61,6 +54,19 @@ pub fn cdr(cons: &Expr) -> Result<Expr> {
         &Expr::Cons(_, ref cdr) => Ok(cdr.deref().clone()),
         arg => Err(E::Type(Type::Cons, arg.clone()))
     }
+}
+
+#[macro_export]
+macro_rules! klist {
+    ($car: expr, $($cdr: expr), *) => (
+        kcons($crate::expr::Expr::from($car), klist!($($cdr),*))
+    );
+    ($car: expr) => (
+        kcons($crate::expr::Expr::from($car), knil())
+    );
+    () => (
+        knil()
+    );
 }
 
 
@@ -106,7 +112,7 @@ macro_rules! get_args_one {
     );
     ($v:expr, Proc) => (
         match $v {
-            &Expr::Proc(ref p) => Ok(p.deref()),
+            &Expr::Proc(ref p) => Ok(p),
             hd => Err(E::Type(Type::Proc, hd.clone()))
         }
     );

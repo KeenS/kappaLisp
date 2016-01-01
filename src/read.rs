@@ -170,12 +170,12 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
 
 fn read_quote(mut input: &mut Peekable<Chars>, _: char)  -> Option<Expr> {
     let v =  try_opt!(read_aux(input, ' '));
-    Some(list2(Expr::Sym("quote".to_string()), v))
+    Some(klist!(Expr::Sym("quote".to_string()), v))
 }
 
 fn read_function(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let v = try_opt!(read_aux(input, ' '));
-    Some(list2(Expr::Sym("function".to_string()), v))
+    Some(klist!(Expr::Sym("function".to_string()), v))
 }
 
 fn read_dispatch(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {

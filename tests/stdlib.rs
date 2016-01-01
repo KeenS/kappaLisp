@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate kappa_lisp;
 use kappa_lisp::{run_new};
 use kappa_lisp::util::*;

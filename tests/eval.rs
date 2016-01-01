@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate kappa_lisp;
 use kappa_lisp::{init, run_new, run, Env};
 use kappa_lisp::util::*;
@@ -20,8 +21,8 @@ fn test_progn(){
 
 #[test]
 fn test_lambda(){
-    assert_eq!(run_new(("(lambda (x) x)")), Ok(kproc(klambda(list1(ksym("x")),
-                                                                           list2(ksym("progn"), ksym("x"))))));
+    assert_eq!(run_new(("(lambda (x) x)")), Ok(kproc(klambda(klist!(ksym("x")),
+                                                                           klist!(ksym("progn"), ksym("x"))))));
     assert_eq!(run_new("((lambda (x) (+ x x)) 1)"), Ok(kint(2)))
 }
 
