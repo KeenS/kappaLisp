@@ -1,4 +1,5 @@
 extern crate time;
+use self::time::Timespec;
 
 use std::ops::Deref;
 
@@ -6,27 +7,30 @@ use ::expr::{Expr, Type, Kint, Result, Error as E};
 use ::env::{Env};
 use ::util::*;
 
+const LOWER_BITS: i64 = 16;
+
+pub fn datetime_info_to_timespec(args: &Expr) -> Result<Timespec> {
+    get_args!(args, (hi, Int) (lo, Int) (nsec, Int) (_, Int));
+    let hi = hi as i64;
+    let lo = lo as i64;
+    let sec = (hi <<LOWER_BITS) + lo;
+    Ok(Timespec{sec: sec, nsec: nsec as i32})
+}
+
+
 pub fn k_current_time(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args);
-    let nbits = 16;
     let time::Timespec{sec, nsec} = time::get_time();
-    let hi  = sec >> nbits;
-    let lo = sec & ((1 << nbits) - 1);
+    let hi  = sec >> LOWER_BITS;
+    let lo = sec & ((1 << LOWER_BITS) - 1);
     Ok(klist!(hi as Kint, lo as Kint, nsec as Kint, 0))
 }
 
 pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, &optional (specified_time, Any) (_, Any));
-    let nbits = 16;
     let now = match specified_time {
         None => time::now(),
-        Some(t) => {
-            get_args!(t, (hi, Int) (lo, Int) (nsec, Int) (_, Int));
-            let hi = hi as i64;
-            let lo = lo as i64;
-            let sec = (hi <<nbits) + lo;
-            time::at(time::Timespec{sec: sec, nsec: nsec as i32})
-        }
+        Some(st) => time::at(try!(datetime_info_to_timespec(st)))
     };
     Ok(Expr::Str(format!("{}", now.ctime())))
 }

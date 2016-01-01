@@ -6,6 +6,7 @@ use ::expr::{Expr, Type, Error as E, Result};
 use ::eval::funcall;
 use ::env::Env;
 use ::util::*;
+use ::datetime::datetime_info_to_timespec;
 
 
 pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
@@ -24,11 +25,12 @@ pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 pub fn k_skk_current_date_1(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, &optional (specifed_time, Any));
+    get_args!(args, &optional (specified_time, Any));
     // TODO: don't allocate month/wday table every time
     let mvec = vec!["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     let wvec = vec!["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    let now = time::now();
+    let now = specified_time.map_or(Ok(time::now()), |st| datetime_info_to_timespec(st).map(|tm| time::at(tm)));
+    let now = try!(now);
     let year = (now.tm_year + 1900).to_string();
     let month = mvec[now.tm_mon as usize];
     let mday = now.tm_mday.to_string();
@@ -51,6 +53,20 @@ pub fn k_skk_current_date(mut env: &mut Env, args: &Expr) -> Result<Expr> {
         Some(f) => funcall(env, f, &klist!(date_information, format, gengo, and_time)),
         None => Ok(knil())
     }    
+}
+
+pub fn k_skk_default_current_date(_: &mut Env, args: &Expr) -> Result<Expr> {
+    get_args!(args,
+              (date_information, Any)
+              (format, Str)
+              (num_type, Int)
+              (gengo, Any)//bool
+              (gengo_index, Any)
+              (month_alist_index, Any)
+              (dayofweek_alist_index, Any)
+              &optional (and_time, Any) // bool
+              );
+    Ok(knil())
 }
 
 
