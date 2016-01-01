@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter, Error as E};
 use std::error;
 use std::result;
 use std::convert::From;
+use std::ops::Deref;
 
 use ::env::Env;
 
@@ -90,7 +91,27 @@ impl fmt::Display for Expr {
             &Expr::Int(i) => write!(f, "{}", i),
             &Expr::Float(fl) => write!(f, "{}", fl),
             // :TODO: pretty print for lists
-            &Expr::Cons(ref car,ref cdr) => write!(f, "({} . {})", car, cdr),
+            &Expr::Cons(ref car,ref cdr) => {
+                let mut tmp = cdr.deref();
+                try!(write!(f, "("));
+                try!(write!(f, "{}", car));
+
+                loop {
+                    match tmp {
+                        &Expr::Cons(ref car, ref cdr) => {
+                            try!(write!(f, " {}",  car));
+                            tmp = cdr.deref()
+                        },
+                        &Expr::Nil => break,
+                        cdr => {
+                            try!(write!(f, " . {}", cdr));
+                            break
+                        }
+                    }
+                    
+                }
+                write!(f, ")")
+            }
             &Expr::Nil => write!(f, "nil"),
             &Expr::Sym(ref s) => write!(f, "{}", s),
             &Expr::Str(ref s) => write!(f, "\"{}\"", s),
