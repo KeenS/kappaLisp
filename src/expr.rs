@@ -86,31 +86,31 @@ impl fmt::Debug for Proc {
 
 impl fmt::Display for Expr {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
-        match self.clone() {
-            Expr::Int(i) => write!(f, "{}", i),
-            Expr::Float(fl) => write!(f, "{}", fl),
+        match self {
+            &Expr::Int(i) => write!(f, "{}", i),
+            &Expr::Float(fl) => write!(f, "{}", fl),
             // :TODO: pretty print for lists
-            Expr::Cons(ref car,ref cdr) => write!(f, "({} . {})", car, cdr),
-            Expr::Nil => write!(f, "nil"),
-            Expr::Sym(ref s) => write!(f, "{}", s),
-            Expr::Str(ref s) => write!(f, "\"{}\"", s),
-            Expr::Proc(p) => write!(f, "{}", p),
-            Expr::EOF => write!(f, "<EOF>")
+            &Expr::Cons(ref car,ref cdr) => write!(f, "({} . {})", car, cdr),
+            &Expr::Nil => write!(f, "nil"),
+            &Expr::Sym(ref s) => write!(f, "{}", s),
+            &Expr::Str(ref s) => write!(f, "\"{}\"", s),
+            &Expr::Proc(ref p) => write!(f, "{}", p),
+            &Expr::EOF => write!(f, "<EOF>")
         }
     }
 }
 
 impl fmt::Display for Type {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
-        match self.clone() {
-            Type::Int   => write!(f, "integer"),
-            Type::Float => write!(f, "float"),
-            Type::Cons  => write!(f, "cons"),
-            Type::Nil   => write!(f, "nil"),
-            Type::Sym   => write!(f, "symbol"),
-            Type::Str   => write!(f, "string"),
-            Type::Proc  => write!(f, "procedure"),
-            Type::Any   => write!(f, "any")
+        match self {
+            &Type::Int   => write!(f, "integer"),
+            &Type::Float => write!(f, "float"),
+            &Type::Cons  => write!(f, "cons"),
+            &Type::Nil   => write!(f, "nil"),
+            &Type::Sym   => write!(f, "symbol"),
+            &Type::Str   => write!(f, "string"),
+            &Type::Proc  => write!(f, "procedure"),
+            &Type::Any   => write!(f, "any")
         }
     }
 }
@@ -119,9 +119,9 @@ impl fmt::Display for Type {
 
 impl fmt::Display for Proc {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
-        match self.clone() {
-            Proc::Lambda(args, body) => write!(f, "(lambda {} {})", args, body),
-            Proc::Prim(name, _) => write!(f, "{}", name)
+        match self {
+            &Proc::Lambda(ref args, ref body) => write!(f, "(lambda {} {})", args, body),
+            &Proc::Prim(ref name, _) => write!(f, "{}", name)
         }
     }
 }
