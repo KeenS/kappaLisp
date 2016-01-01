@@ -24,7 +24,7 @@ pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 pub fn k_skk_current_date_1(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (_, opt Any));
+    get_args!(args, &optional (_, Any));
     // TODO: don't allocate month/wday table every time
     let mvec = vec!["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     let wvec = vec!["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -41,7 +41,7 @@ pub fn k_skk_current_date_1(_: &mut Env, args: &Expr) -> Result<Expr> {
 
 
 pub fn k_skk_current_date(mut env: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (f, opt Proc));
+    get_args!(args, &optional (f, Proc));
     let date_information = try!(k_skk_current_date_1(&mut env, &knil()));
     let format = knil();
     let gengo = knil(); //or t

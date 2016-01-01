@@ -131,6 +131,9 @@ macro_rules! gen_pattern {
     (($var: pat, $ident: tt) $($other:tt) *) => (
         ($var, gen_pattern!($($other)*))
             );
+    (&optional ($var: pat, $ident: tt) $($other:tt) *) => (
+        ($var, gen_pattern!($($other)*))
+            );
     () => (())
 }
 
@@ -146,20 +149,26 @@ macro_rules! gen_match {
                 args => return Err(E::InvalidArgument(args.clone()))
             };
             );
-    ($args: expr, ($var: pat, opt $ident: tt) $($other:tt) *) =>
+    ($args: expr, &optional ($var: pat, $ident: tt) $($other:tt) *) =>
         (
             match $args {
                 &Expr::Cons(ref hd, ref tl) => {
                     let v = try!(get_args_one!(hd.deref(), $ident));
-                    (Some(v), gen_match!(tl.deref(), $($other)*))
+                    (Some(v), gen_match!(tl.deref(), &optional $($other)*))
                 },
                 &Expr::Nil => {
-                    (None, gen_match!($args, $($other)*))
+                    (None, gen_match!($args, &optional $($other)*))
                     
                 },
                 args => return Err(E::InvalidArgument(args.clone()))
             };
             );
+    ($args: expr, &optional) => (
+        match $args {
+            &Expr::Nil => (),
+            _ => return Err(E::ArityExceed)
+        }
+        );
     ($args: expr, ) => (
         match $args {
             &Expr::Nil => (),
@@ -170,13 +179,9 @@ macro_rules! gen_match {
 
 #[macro_export]
 macro_rules! get_args {
-    ($args: expr, ($var: pat, $ident: tt) $($other:tt) *) =>
+    ($args: expr, $($other:tt) *) =>
         (
-            let gen_pattern!(($var, $ident) $($other)*) = gen_match!($args, ($var, $ident) $($other)*)
-            ) ;
-    ($args: expr, ($var: pat, opt $ident: tt) $($other:tt) *) =>
-        (
-            let gen_pattern!(($var, $ident) $($other)*) = gen_match!($args, ($var, opt $ident) $($other)*)
+            let gen_pattern!($($other)*) = gen_match!($args, $($other)*)
             ) ;
     ($args: expr, ) => (
         let () = gen_match!($args,)

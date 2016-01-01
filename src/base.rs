@@ -112,9 +112,12 @@ pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
 
 
 pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (s, Str) (start, Int) (end, Int));
+    get_args!(args, (s, Str) &optional (start, Int) (end, Int));
     let len = s.len();
-    if 0 <= start && start <= end && end < (len as Kint) {
+    let ilen = len as Kint;
+    let start = start.unwrap_or(0);
+    let end = end.unwrap_or(ilen);
+    if 0 <= start && start <= end && end < ilen {
         let start = start as usize;
         let end = end as usize;
         Ok(Expr::Str((&s[start..end]).to_string()))
