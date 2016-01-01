@@ -148,7 +148,11 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
         &Expr::Proc(_) => Ok(expr.clone()),
         &Expr::Sym(ref name) => match env.find(&name.to_string()) {
             Ok(v) =>Ok(v.clone()),
-            Err(m) => Err(m)
+            Err(m) => if name == "t" {
+                Ok(ksym("t"))
+            }else {
+                Err(m)
+            }
         },
         &Expr::Cons(ref car, ref cdr) => {
             let car = car.deref();

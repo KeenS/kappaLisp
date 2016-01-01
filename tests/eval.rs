@@ -7,7 +7,7 @@ use kappa_lisp::util::*;
 fn test_atom(){
     assert_eq!(run_new("1"), Ok(kint(1)));
     assert_eq!(run_new("()"), Ok(knil()));
-//    assert_eq!(run_new(("")), Ok(keOF));
+    assert_eq!(run_new(("t")), Ok(ksym("t")));
     assert_eq!(run_new("\"string\""), Ok(kstr("string".to_string())));
 }
 // TODO: test `function`
