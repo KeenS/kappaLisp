@@ -72,6 +72,12 @@ macro_rules! klist {
 
 
 macro_rules! get_args_one {
+    ($v:expr, Nullable $($ident: tt)+) => (
+        match $v {
+            &Expr::Nil => Ok(None),
+            v => Ok(Some(try!(get_args_one!(v, $($ident)+))))
+        }
+     );
     ($v:expr, Int) => (
         match $v {
             &Expr::Int(x) => Ok(x),
@@ -134,32 +140,32 @@ macro_rules! get_args_one {
 }
 
 macro_rules! gen_pattern {
-    (($var: pat, $ident: tt) $($other:tt) *) => (
+    (($var: pat, $($ident: tt)*) $($other:tt) *) => (
         ($var, gen_pattern!($($other)*))
             );
-    (&optional ($var: pat, $ident: tt) $($other:tt) *) => (
+    (&optional ($var: pat, $($ident: tt)*) $($other:tt) *) => (
         ($var, gen_pattern!($($other)*))
             );
     () => (())
 }
 
 macro_rules! gen_match {
-    ($args: expr, ($var: pat, $ident: tt) $($other:tt) *) =>
+    ($args: expr, ($var: pat, $($ident: tt)+) $($other:tt) *) =>
         (
             match $args {
                 &Expr::Cons(ref hd, ref tl) => {
-                    let v = try!(get_args_one!(hd.deref(), $ident));
+                    let v = try!(get_args_one!(hd.deref(), $($ident)+));
                     (v, gen_match!(tl.deref(), $($other)*))
                 },
                 &Expr::Nil => return Err(E::ArityShort),
                 args => return Err(E::InvalidArgument(args.clone()))
             };
             );
-    ($args: expr, &optional ($var: pat, $ident: tt) $($other:tt) *) =>
+    ($args: expr, &optional ($var: pat, $($ident: tt)+) $($other:tt) *) =>
         (
             match $args {
                 &Expr::Cons(ref hd, ref tl) => {
-                    let v = try!(get_args_one!(hd.deref(), $ident));
+                    let v = try!(get_args_one!(hd.deref(), $($ident)+));
                     (Some(v), gen_match!(tl.deref(), &optional $($other)*))
                 },
                 &Expr::Nil => {
