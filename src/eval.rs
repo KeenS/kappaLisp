@@ -15,7 +15,7 @@ fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
                 match pcar.deref() {
                     &Expr::Sym(ref name) => env.register(name.clone(), acar.deref().clone()),
                     pcar => return Err(E::Form(pcar.clone()))
-                };   
+                };
                 phead = pcdr.deref();
                 ahead = acdr.deref();
             },
@@ -48,7 +48,9 @@ fn k_quote(_: &mut Env, args: &Expr) -> Result<Expr> {
 
 fn f_lambda(_: &mut Env, args: &Expr) -> Result<Proc> {
     match args {
-        &Expr::Cons(ref params, ref body) => Ok(Proc::Lambda(params.clone(), Rc::new(Expr::Cons(Rc::new(Expr::Sym("progn".to_string())), body.clone())))),
+        &Expr::Cons(ref params, ref body) =>
+            Ok(Proc::Lambda(params.clone(),
+                            Rc::new(Expr::Cons(Rc::new(ksym("progn")), body.clone())))),
         _ => unreachable!()
     }
 }
@@ -146,7 +148,7 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
         &Expr::Int(_) |
         &Expr::Float(_) |
         &Expr::Proc(_) => Ok(expr.clone()),
-        &Expr::Sym(ref name) => match env.find(&name.to_string()) {
+        &Expr::Sym(ref name) => match env.find(&name.to_owned()) {
             Ok(v) =>Ok(v.clone()),
             Err(m) => if name == "t" {
                 Ok(ksym("t"))

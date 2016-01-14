@@ -59,7 +59,7 @@ pub enum Error {
 
 impl From<Kint> for Expr {fn from(i: Kint) -> Self {Expr::Int(i)}}
 impl From<Kfloat> for Expr {fn from(f: Kfloat) -> Self {Expr::Float(f)}}
-impl <'a >From<&'a str> for Expr {fn from(s: &str) -> Self {Expr::Str(s.to_string())}}
+impl <'a >From<&'a str> for Expr {fn from(s: &str) -> Self {Expr::Str(s.to_owned())}}
 impl From<String> for Expr {fn from(s: String) -> Self {Expr::Str(s)}}
 impl <'a>From<&'a Expr> for Expr {fn from(e: &'a Expr) -> Self {e.clone()}}
 

@@ -29,7 +29,6 @@ macro_rules! def_arith_op {
                 (&Expr::Float(x), &Expr::Float(y)) => Ok(Expr::Float(expr!(x $op y))),
                 (&Expr::Int(_), y) => Err(E::Type(Type::Int, y.clone())),
                 (x, _) => Err(E::Type(Type::Int, x.clone())),
-                    
             }, &init, args)
 
         }
@@ -46,9 +45,8 @@ pub fn k_concat(mut env: &mut Env, args: &Expr) -> Result<Expr> {
         (&Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(Expr::Str(format!("{}{}",acc, x))),
         (_, y) => Err(E::Type(Type::Str, y.clone()))
     }
-                      , &Expr::Str("".to_string()), &args);
+                      , &kstr(""), &args);
     Ok(try!(res).clone())
-    
 }
 
 
@@ -111,7 +109,7 @@ pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
     if 0 <= start && start <= end && end < ilen {
         let start = start as usize;
         let end = end as usize;
-        Ok(Expr::Str((&s[start..end]).to_string()))
+        Ok(Expr::Str((&s[start..end]).to_owned()))
     } else {
         Err(E::InvalidArgument(args.clone()))
     }

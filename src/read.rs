@@ -91,7 +91,6 @@ fn read_number(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Opti
             // FIXME: ignoring radix
             let f = Kfloat::from_str(&acc[..]).unwrap();
             Some(Expr::Float((i as Kfloat) + f))
-            
         },
         _ => {
             Some(Expr::Int(i))
@@ -106,7 +105,7 @@ fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
     if sym == "nil" {
         Some(Expr::Nil)
-    } else {        
+    } else {
         Some(Expr::Sym(sym))
     }
 }
@@ -165,17 +164,16 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
         (Some(car), Some(cdr)) => Some(kcons(car, cdr)),
         _ => None
     }
-    
 }
 
 fn read_quote(mut input: &mut Peekable<Chars>, _: char)  -> Option<Expr> {
     let v =  try_opt!(read_aux(input, ' '));
-    Some(klist!(Expr::Sym("quote".to_string()), v))
+    Some(klist!(ksym("quote"), v))
 }
 
 fn read_function(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let v = try_opt!(read_aux(input, ' '));
-    Some(klist!(Expr::Sym("function".to_string()), v))
+    Some(klist!(ksym("function"), v))
 }
 
 fn read_dispatch(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {

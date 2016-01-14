@@ -11,7 +11,7 @@ use ::datetime::datetime_info_to_timespec;
 
 pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (op, Sym));
-    let skk_num_list = try!(env.find(&"skk-num-list".to_string())).clone();
+    let skk_num_list = try!(env.find(&"skk-num-list".to_owned())).clone();
     get_args!(&skk_num_list, (x, Int) (y, Int));
     let res = match &op[..] {
         "+" => x + y,
