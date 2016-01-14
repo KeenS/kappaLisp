@@ -104,9 +104,9 @@ fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
         sym.push(input.next().unwrap());
     }
     if sym == "nil" {
-        Some(Expr::Nil)
+        Some(knil())
     } else {
-        Some(Expr::Sym(sym))
+        Some(ksym(sym))
     }
 }
 
@@ -133,7 +133,7 @@ fn read_string(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     loop {
         let c = try_opt!(input.next());
         match c == '"' {
-            true =>  return Some(Expr::Str(string)),
+            true =>  return Some(kstr(string)),
             false => string.push(c)
         }
     };
@@ -142,7 +142,7 @@ fn read_string(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
 fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let c = try_opt!(next_nonwhitespaces(input, ' '));
     let car =  match c {
-        ')' => return Some(Expr::Nil),
+        ')' => return Some(knil()),
         _ => read_aux(input, c)
     };
 
@@ -150,7 +150,7 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let cdr = if c == '.' {
         let _ = try_opt!(next_nonwhitespaces(input, ' '));// == 'c'
         match try_opt!(read_list(input, '(')) {
-            Expr::Cons(ref e, ref nil) => if nil.deref() == &Expr::Nil {
+            Expr::Cons(ref e, ref nil) => if nil.deref() == &knil() {
                 Some(e.deref().clone())
             }else {
                 None

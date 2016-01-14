@@ -23,10 +23,10 @@ macro_rules! def_arith_op {
                 args => ($init, args)
             };
             f_foldl(env, &|_, x, y| match (x, y) {
-                (&Expr::Int(x), &Expr::Int(y)) => Ok(Expr::Int(expr!(x $op y))),
-                (&Expr::Float(x), &Expr::Int(y)) => Ok(Expr::Float(expr!(x $op (y as Kfloat)))),
-                (&Expr::Int(x), &Expr::Float(y)) => Ok(Expr::Float(expr!((x as Kfloat) $op y))),
-                (&Expr::Float(x), &Expr::Float(y)) => Ok(Expr::Float(expr!(x $op y))),
+                (&Expr::Int(x), &Expr::Int(y)) => Ok(kint(expr!(x $op y))),
+                (&Expr::Float(x), &Expr::Int(y)) => Ok(kfloat(expr!(x $op (y as Kfloat)))),
+                (&Expr::Int(x), &Expr::Float(y)) => Ok(kfloat(expr!((x as Kfloat) $op y))),
+                (&Expr::Float(x), &Expr::Float(y)) => Ok(kfloat(expr!(x $op y))),
                 (&Expr::Int(_), y) => Err(E::Type(Type::Int, y.clone())),
                 (x, _) => Err(E::Type(Type::Int, x.clone())),
             }, &init, args)
@@ -35,14 +35,14 @@ macro_rules! def_arith_op {
     }
 }
 
-def_arith_op!(k_add, +, Expr::Int(0));
-def_arith_op!(k_sub, -, Expr::Int(0));
-def_arith_op!(k_mul, *, Expr::Int(1));
-def_arith_op!(k_div, /, Expr::Int(1));
+def_arith_op!(k_add, +, kint(0));
+def_arith_op!(k_sub, -, kint(0));
+def_arith_op!(k_mul, *, kint(1));
+def_arith_op!(k_div, /, kint(1));
 
 pub fn k_concat(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let res = f_foldl(env, &|_, acc, x| match (acc, x) {
-        (&Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(Expr::Str(format!("{}{}",acc, x))),
+        (&Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(kstr(format!("{}{}",acc, x))),
         (_, y) => Err(E::Type(Type::Str, y.clone()))
     }
                       , &kstr(""), &args);
@@ -84,11 +84,10 @@ pub fn k_equal_p(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (x, Any) (y, Any));
     if x == y {
         // TODO: return `t`
-        Ok(Expr::Int(1))
+        Ok(kint(1))
     } else {
-        Ok(Expr::Nil)
+        Ok(knil())
     }
-        
 }
 
 pub fn k_string_to_number(_: &mut Env, args: &Expr) -> Result<Expr> {
@@ -109,7 +108,7 @@ pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
     if 0 <= start && start <= end && end < ilen {
         let start = start as usize;
         let end = end as usize;
-        Ok(Expr::Str((&s[start..end]).to_owned()))
+        Ok(kstr((&s[start..end]).to_owned()))
     } else {
         Err(E::InvalidArgument(args.clone()))
     }

@@ -4,39 +4,47 @@ use std::ops::Deref;
 use ::expr::{Expr,Kint,  Kfloat, Type, Proc, Error as E, Result};
 use ::env::Env;
 
+#[inline]
 pub fn kint(i: Kint) -> Expr {
     Expr::Int(i)
 }
 
+#[inline]
 pub fn kfloat(f: Kfloat) -> Expr {
     Expr::Float(f)
 }
 
+#[inline]
 pub fn kcons(car: Expr, cdr: Expr) -> Expr {
     Expr::Cons(Rc::new(car), Rc::new(cdr))
 }
 
+#[inline]
 pub fn knil() -> Expr {
     Expr::Nil
 }
 
-
+#[inline]
 pub fn ksym<S: Into<String>>(s: S) -> Expr {
     Expr::Sym(s.into())
 }
 
+#[inline]
 pub fn kstr<S: Into<String>>(s: S) -> Expr {
     Expr::Str(s.into())
 }
 
+#[inline]
 pub fn kproc(p: Proc) -> Expr {
     Expr::Proc(p)
 }
 
+#[inline]
 pub fn klambda(param: Expr, body: Expr) -> Proc {
     Proc::Lambda(Rc::new(param), Rc::new(body))
 }
 
+#[inline]
 pub fn kprim<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + Sized>(name: S, f: F) -> Proc{
     Proc::Prim(name.into(), Rc::new(f))
 }
@@ -241,7 +249,7 @@ pub fn f_foldr<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<
 pub fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
     where F: Fn(&mut Env, &Expr) -> Result<Expr>{
     f_foldr(env, &|env, acc, x| Ok(kcons(try!(f(env, x)), acc.clone()))
-                 , &Expr::Nil, list)
+                 , &knil(), list)
 }
 
 // fn f_iter<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>

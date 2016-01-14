@@ -32,7 +32,7 @@ pub fn k_current_time_string(_: &mut Env, args: &Expr) -> Result<Expr> {
         None => time::now(),
         Some(st) => time::at(try!(datetime_info_to_timespec(st)))
     };
-    Ok(Expr::Str(format!("{}", now.ctime())))
+    Ok(kstr(format!("{}", now.ctime())))
 }
 
 pub fn init(mut env: &mut Env) -> Result<()>{

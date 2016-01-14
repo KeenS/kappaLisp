@@ -7,6 +7,7 @@ use std::convert::From;
 use std::ops::Deref;
 
 use ::env::Env;
+use ::util::*;
 
 pub type Kfloat = f32;
 pub type Kint = isize;
@@ -57,10 +58,10 @@ pub enum Error {
 
 
 
-impl From<Kint> for Expr {fn from(i: Kint) -> Self {Expr::Int(i)}}
-impl From<Kfloat> for Expr {fn from(f: Kfloat) -> Self {Expr::Float(f)}}
-impl <'a >From<&'a str> for Expr {fn from(s: &str) -> Self {Expr::Str(s.to_owned())}}
-impl From<String> for Expr {fn from(s: String) -> Self {Expr::Str(s)}}
+impl From<Kint> for Expr {fn from(i: Kint) -> Self {kint(i)}}
+impl From<Kfloat> for Expr {fn from(f: Kfloat) -> Self {kfloat(f)}}
+impl <'a >From<&'a str> for Expr {fn from(s: &str) -> Self {kstr(s.to_owned())}}
+impl From<String> for Expr {fn from(s: String) -> Self {kstr(s)}}
 impl <'a>From<&'a Expr> for Expr {fn from(e: &'a Expr) -> Self {e.clone()}}
 
 
@@ -83,7 +84,7 @@ impl fmt::Debug for Proc {
             &Proc::Prim(ref name, _) => write!(f, "Prim(#<native function {}>)", name)
         }
     }
-} 
+}
 
 
 impl fmt::Display for Expr {

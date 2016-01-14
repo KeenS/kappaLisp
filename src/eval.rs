@@ -8,7 +8,7 @@ use ::util::*;
 fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
     let mut phead = params;
     let mut ahead = args;
-    let nil = &Expr::Nil;
+    let nil = &knil();
     while phead != nil && ahead != nil {
         match (phead, ahead) {
             (&Expr::Cons(ref pcar, ref pcdr), &Expr::Cons(ref acar, ref acdr)) => {
@@ -49,8 +49,8 @@ fn k_quote(_: &mut Env, args: &Expr) -> Result<Expr> {
 fn f_lambda(_: &mut Env, args: &Expr) -> Result<Proc> {
     match args {
         &Expr::Cons(ref params, ref body) =>
-            Ok(Proc::Lambda(params.clone(),
-                            Rc::new(Expr::Cons(Rc::new(ksym("progn")), body.clone())))),
+            Ok(klambda(params.deref().clone(),
+                       kcons(ksym("progn"), body.deref().clone()))),
         _ => unreachable!()
     }
 }
@@ -70,8 +70,8 @@ fn k_feval(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 
 fn k_progn(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let mut head = args;
-    let nil = &Expr::Nil;
-    let mut res = Expr::Nil;
+    let nil = &knil();
+    let mut res = knil();
     while head != nil {
         match head {
             &Expr::Cons(ref car, ref cdr) => {
@@ -91,7 +91,7 @@ fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let tmp = klist!(s);
     get_args!(&tmp, (s, Sym));
     env.fregister(s.clone(), f.clone());
-    return Ok(Expr::Nil);
+    return Ok(knil());
 }
 
 fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
@@ -101,7 +101,7 @@ fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let tmp = klist!(s);
     get_args!(&tmp, (s, Sym));
     env.register(s.clone(), e.clone());
-    return Ok(Expr::Nil);
+    return Ok(knil());
 }
 
 
@@ -109,7 +109,7 @@ fn k_if(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     // TODO: optional else clasue. Need optional argments.
     get_args!(args, (cnd, Any) (thn, Any) (els, Any));
     let res = try!(eval(env, cnd));
-    if res != Expr::Nil {
+    if res != knil() {
         eval(env, thn)
     } else {
         eval(env, els)
