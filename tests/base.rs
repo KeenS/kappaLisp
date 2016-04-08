@@ -104,3 +104,9 @@ fn test_substring() {
     assert_eq!(run_new("(substring \"abcdefg\" 0 3)"), Ok(kstr("abc")));
     assert_eq!(run_new("(substring \"abcdefg\" 4 6)"), Ok(kstr("ef")));
 }
+
+
+#[test]
+fn test_t() {
+    assert_eq!(run_new("t"), Ok(ksym("t")))
+}

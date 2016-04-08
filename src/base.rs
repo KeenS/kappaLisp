@@ -128,6 +128,7 @@ pub fn init(mut env: &mut Env) -> Result<()>{
     env.fregister("equal?",  kprim("k_equal_p", k_equal_p));
     env.fregister("string-to-number", kprim("k_string_to_number", k_string_to_number));
     env.fregister("substring", kprim("k_substring", k_substring));
+    env.register("t", ksym("t"));
     Ok(())
 }
 
