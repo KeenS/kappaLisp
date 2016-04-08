@@ -23,7 +23,12 @@ fn test_progn(){
 fn test_lambda(){
     assert_eq!(run_new(("(lambda (x) x)")), Ok(kproc(klambda(klist!(ksym("x")),
                                                                            klist!(ksym("progn"), ksym("x"))))));
-    assert_eq!(run_new("((lambda (x) (+ x x)) 1)"), Ok(kint(2)))
+    assert_eq!(run_new(("(lambda (x y z) x)")), Ok(kproc(klambda(klist!(ksym("x"), ksym("y"), ksym("z")),
+                                                                           klist!(ksym("progn"), ksym("x"))))));
+    assert_eq!(run_new("((lambda (x) (+ x x)) 1)"), Ok(kint(2)));
+    assert_eq!(run_new(("((lambda (x y z) x) 1 2 3)")), Ok(kint(1)));
+    assert_eq!(run_new(("((lambda (x y &optional z) z) 1 2 3)")), Ok(kint(3)));
+    assert_eq!(run_new(("((lambda (x y &optional z) z) 1 2)")), Ok(knil()));
 }
 
 

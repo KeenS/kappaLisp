@@ -8,16 +8,40 @@ use ::util::*;
 fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
     let mut phead = params;
     let mut ahead = args;
+    let mut in_optional = false;
+    let optional = ksym("&optional");
     let nil = &knil();
-    while phead != nil && ahead != nil {
-        match (phead, ahead) {
-            (&Expr::Cons(ref pcar, ref pcdr), &Expr::Cons(ref acar, ref acdr)) => {
-                match pcar.deref() {
-                    &Expr::Sym(ref name) => env.register(name.clone(), acar.deref().clone()),
-                    pcar => return Err(E::Form(pcar.clone()))
-                };
-                phead = pcdr.deref();
-                ahead = acdr.deref();
+    // matching exact
+    while phead != nil || ahead != nil {
+        match phead {
+            &Expr::Cons(ref pcar, ref pcdr) => {
+                let pcar = pcar.deref();
+                if pcar == &optional {
+                    in_optional = true;
+                    phead = pcdr.deref();
+                    continue;
+                }
+                match ahead {
+                    &Expr::Cons(ref acar, ref acdr) => {
+                        match pcar {
+                            &Expr::Sym(ref name) => env.register(name.clone(), acar.deref().clone()),
+                            pcar => return Err(E::Form(pcar.clone()))
+                        };
+                        phead = pcdr.deref();
+                        ahead = acdr.deref();
+                    },
+                    &Expr::Nil => {
+                        if ! in_optional {
+                            return Err(E::Form(pcar.clone()))
+                        }
+                        match pcar {
+                            &Expr::Sym(ref name) => env.register(name.clone(), knil()),
+                            pcar => return Err(E::Form(pcar.clone()))
+                        };
+                        phead = pcdr.deref();
+                    },
+                    _ => return Err(E::Form(args.clone()))
+                }
             },
             _ => return Err(E::Form(args.clone()))
         }
