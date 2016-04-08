@@ -5,11 +5,19 @@ use ::expr::{Expr, Type, Proc, Error as E, Result};
 use ::env::Env;
 use ::util::*;
 
+fn bind_name(mut env: &mut Env, name: &Expr, value: Expr) -> Result<()> {
+    match name {
+        &Expr::Sym(ref name) => Ok(env.register(name.clone(), value)),
+        name => return Err(E::Form(name.clone()))
+    }
+}
+
 fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
     let mut phead = params;
     let mut ahead = args;
     let mut in_optional = false;
     let optional = ksym("&optional");
+    let rest = ksym("&rest");
     let nil = &knil();
     // matching exact
     while phead != nil || ahead != nil {
@@ -21,12 +29,20 @@ fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
                     phead = pcdr.deref();
                     continue;
                 }
+                if pcar == &rest {
+                    match pcdr.deref() {
+                        &Expr::Cons(ref name, ref tail) => {
+                            if tail.deref() != nil {return Err(E::Form(tail.deref().clone()))}
+                            try!(bind_name(env, name, ahead.clone()));
+                            return Ok(());
+                        },
+                        _ => return Err(E::Form(pcdr.deref().clone()))
+                    }
+                }
+
                 match ahead {
                     &Expr::Cons(ref acar, ref acdr) => {
-                        match pcar {
-                            &Expr::Sym(ref name) => env.register(name.clone(), acar.deref().clone()),
-                            pcar => return Err(E::Form(pcar.clone()))
-                        };
+                        try!(bind_name(env, pcar, acar.deref().clone()));
                         phead = pcdr.deref();
                         ahead = acdr.deref();
                     },
@@ -34,10 +50,7 @@ fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
                         if ! in_optional {
                             return Err(E::Form(pcar.clone()))
                         }
-                        match pcar {
-                            &Expr::Sym(ref name) => env.register(name.clone(), knil()),
-                            pcar => return Err(E::Form(pcar.clone()))
-                        };
+                        try!(bind_name(env, pcar, knil()));
                         phead = pcdr.deref();
                     },
                     _ => return Err(E::Form(args.clone()))
