@@ -107,12 +107,15 @@ fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
 
 fn k_if(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     // TODO: optional else clasue. Need optional argments.
-    get_args!(args, (cnd, Any) (thn, Any) (els, Any));
+    get_args!(args, (cnd, Any) (thn, Any) &optional (els, Any));
     let res = try!(eval(env, cnd));
     if res != knil() {
         eval(env, thn)
     } else {
-        eval(env, els)
+        match els {
+            Some(els) =>  eval(env, els),
+            None => Ok(knil())
+        }
     }
 }
 
