@@ -83,8 +83,7 @@ pub fn k_list(_: &mut Env, args: &Expr) -> Result<Expr> {
 pub fn k_equal_p(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (x, Any) (y, Any));
     if x == y {
-        // TODO: return `t`
-        Ok(kint(1))
+        Ok(ksym("t"))
     } else {
         Ok(knil())
     }
