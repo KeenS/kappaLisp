@@ -19,7 +19,6 @@ fn bind_names(mut env: &mut Env, params: &Expr, args: &Expr) -> Result<()>{
     let optional = ksym("&optional");
     let rest = ksym("&rest");
     let nil = &knil();
-    // matching exact
     while phead != nil || ahead != nil {
         match phead {
             &Expr::Cons(ref pcar, ref pcdr) => {
