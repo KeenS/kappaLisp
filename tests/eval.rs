@@ -42,11 +42,12 @@ fn test_set() {
     init(&mut env).unwrap();
     assert_eq!(run(&mut env, "(set 'foo (+ 1 2 3))"), Ok(knil()));
     assert_eq!(run(&mut env, "foo"), Ok(kint(6)));
-    
 }
 
 #[test]
 fn test_if() {
     assert_eq!(run_new("(if () 1 2)"), Ok(kint(2)));
     assert_eq!(run_new("(if 1 1 2)"), Ok(kint(1)));
+    assert_eq!(run_new("(if 1 1)"), Ok(kint(1)));
+    assert_eq!(run_new("(if nil 1)"), Ok(knil()));
 }
