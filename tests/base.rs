@@ -84,9 +84,9 @@ fn test_list() {
 
 #[test]
 fn test_equal_p() {
-    assert_eq!(run_new("(equal? 1 1)"), Ok(kint(1)));
-    assert_eq!(run_new("(equal? 'sym 'sym)"), Ok(kint(1)));
-    assert_eq!(run_new("(equal? \"str\" \"str\")"), Ok(kint(1)));
+    assert_eq!(run_new("(equal? 1 1)"), Ok(ksym("t")));
+    assert_eq!(run_new("(equal? 'sym 'sym)"), Ok(ksym("t")));
+    assert_eq!(run_new("(equal? \"str\" \"str\")"), Ok(ksym("t")));
     assert_eq!(run_new("(equal? 1 \"str\")"), Ok(knil()));
     assert_eq!(run_new("(equal? 'sym \"str\")"), Ok(knil()));
     assert_eq!(run_new("(equal? (list \"str\") \"str\")"), Ok(knil()));
