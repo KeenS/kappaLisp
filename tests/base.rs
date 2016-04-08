@@ -76,13 +76,6 @@ fn test_cdr() {
 
 
 #[test]
-fn test_list() {
-    assert_eq!(run_new("(list)"), Ok(knil()));
-    assert_eq!(run_new("(list 1)"), Ok(klist!(kint(1))));
-    assert_eq!(run_new("(list 1 2)"), Ok(klist!(kint(1), kint(2))));
-}
-
-#[test]
 fn test_equal_p() {
     assert_eq!(run_new("(equal? 1 1)"), Ok(ksym("t")));
     assert_eq!(run_new("(equal? 'sym 'sym)"), Ok(ksym("t")));

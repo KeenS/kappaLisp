@@ -76,10 +76,6 @@ pub fn k_cdr(_: &mut Env, args: &Expr) -> Result<Expr> {
 
 }
 
-pub fn k_list(_: &mut Env, args: &Expr) -> Result<Expr> {
-    Ok(args.clone())
-}
-
 pub fn k_equal_p(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (x, Any) (y, Any));
     if x == y {
@@ -123,7 +119,6 @@ pub fn init(mut env: &mut Env) -> Result<()>{
     env.fregister("cons",    kprim("k_cons", k_cons));
     env.fregister("car",     kprim("k_car", k_car));
     env.fregister("cdr",     kprim("k_cdr", k_cdr));
-    env.fregister("list",    kprim("k_list",k_list));
     env.fregister("equal?",  kprim("k_equal_p", k_equal_p));
     env.fregister("string-to-number", kprim("k_string_to_number", k_string_to_number));
     env.fregister("substring", kprim("k_substring", k_substring));
