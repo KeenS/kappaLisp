@@ -1,8 +1,8 @@
 use std::rc::Rc;
 use std::ops::Deref;
 
-use ::expr::{Expr,Kint,  Kfloat, Type, Proc, Error as E, Result};
-use ::env::Env;
+use expr::{Expr, Kint, Kfloat, Type, Proc, Error as E, Result};
+use env::Env;
 
 #[inline]
 pub fn kint(i: Kint) -> Expr {
@@ -45,7 +45,9 @@ pub fn klambda(param: Expr, body: Expr) -> Proc {
 }
 
 #[inline]
-pub fn kprim<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + Sized>(name: S, f: F) -> Proc{
+pub fn kprim<S: Into<String>, F: 'static + Fn(&mut Env, &Expr) -> Result<Expr> + Sized>(name: S,
+                                                                                        f: F)
+                                                                                        -> Proc {
     Proc::Prim(name.into(), Rc::new(f))
 }
 
@@ -53,14 +55,14 @@ pub fn kprim<S: Into<String>, F:'static + Fn(&mut Env, &Expr) -> Result<Expr> + 
 pub fn car(cons: &Expr) -> Result<Expr> {
     match cons {
         &Expr::Cons(ref car, _) => Ok(car.deref().clone()),
-        arg => Err(E::Type(Type::Cons, arg.clone()))
+        arg => Err(E::Type(Type::Cons, arg.clone())),
     }
 }
 
 pub fn cdr(cons: &Expr) -> Result<Expr> {
     match cons {
         &Expr::Cons(_, ref cdr) => Ok(cdr.deref().clone()),
-        arg => Err(E::Type(Type::Cons, arg.clone()))
+        arg => Err(E::Type(Type::Cons, arg.clone())),
     }
 }
 
@@ -214,7 +216,8 @@ macro_rules! get_args {
 
 
 pub fn f_foldl<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<Expr>
-    where F: Fn(&mut Env, &Expr, &Expr) -> Result<Expr>{
+    where F: Fn(&mut Env, &Expr, &Expr) -> Result<Expr>
+{
     let mut res = init.clone();
     let mut head = args;
     let nil = &Expr::Nil;
@@ -224,7 +227,7 @@ pub fn f_foldl<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<
                 res = try!(f(env, &res, car));
                 head = cdr;
             }
-            _ => return Err(E::InvalidArgument(args.clone()))
+            _ => return Err(E::InvalidArgument(args.clone())),
         }
     }
     Ok(res)
@@ -235,21 +238,25 @@ pub fn f_foldl<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<
 // }
 
 pub fn f_foldr<F>(mut env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<Expr>
-    where F: Fn(&mut Env, &Expr, &Expr) -> Result<Expr>{
+    where F: Fn(&mut Env, &Expr, &Expr) -> Result<Expr>
+{
     match args {
         &Expr::Nil => Ok(init.clone()),
         &Expr::Cons(ref car, ref cdr) => {
             let v = try!(f_foldr(env, f, init, cdr));
             f(env, &v, car)
         }
-        args => Err(E::InvalidArgument(args.clone()))
+        args => Err(E::InvalidArgument(args.clone())),
     }
 }
 
 pub fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
-    where F: Fn(&mut Env, &Expr) -> Result<Expr>{
-    f_foldr(env, &|env, acc, x| Ok(kcons(try!(f(env, x)), acc.clone()))
-                 , &knil(), list)
+    where F: Fn(&mut Env, &Expr) -> Result<Expr>
+{
+    f_foldr(env,
+            &|env, acc, x| Ok(kcons(try!(f(env, x)), acc.clone())),
+            &knil(),
+            list)
 }
 
 // fn f_iter<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
@@ -257,4 +264,3 @@ pub fn f_map<F>(mut env: &mut Env, f: &F, list: &Expr) -> Result<Expr>
 //     f_foldr(env, &|env, _, x| {try!(f(env,x.clone())); Ok(Expr::Nil)}
 //                  , Expr::Nil, list)
 // }
-

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::collections::LinkedList;
 
-use ::expr::{Expr, Proc, Error as E, Result};
+use expr::{Expr, Proc, Error as E, Result};
 
 pub struct Env {
     global: HashMap<String, Expr>,
@@ -17,7 +17,7 @@ impl Env {
             global: HashMap::new(),
             local: LinkedList::new(),
             fglobal: HashMap::new(),
-            flocal: LinkedList::new()
+            flocal: LinkedList::new(),
         }
     }
 
@@ -34,41 +34,40 @@ impl Env {
     pub fn register<S: Into<String>>(&mut self, name: S, value: Expr) {
         match self.local.front_mut() {
             Some(l) => l.insert(name.into(), value),
-            None => self.global.insert(name.into(), value)
+            None => self.global.insert(name.into(), value),
         };
     }
 
     pub fn fregister<S: Into<String>>(&mut self, name: S, value: Proc) {
         match self.flocal.front_mut() {
             Some(l) => l.insert(name.into(), value),
-            None => self.fglobal.insert(name.into(), value)
+            None => self.fglobal.insert(name.into(), value),
         };
     }
 
-    pub fn find(&self, name: &String)  -> Result<&Expr> {
+    pub fn find(&self, name: &String) -> Result<&Expr> {
         for m in self.local.iter() {
             match m.get(name) {
                 Some(v) => return Ok(v),
-                None => ()
+                None => (),
             }
-        };
+        }
         match self.global.get(name) {
             Some(v) => Ok(v),
-            None => Err(E::Unbound(name.clone()))
+            None => Err(E::Unbound(name.clone())),
         }
     }
 
-    pub fn ffind(&self, name: &String)  -> Result<&Proc> {
+    pub fn ffind(&self, name: &String) -> Result<&Proc> {
         for m in self.flocal.iter() {
             match m.get(name) {
                 Some(v) => return Ok(v),
-                None => ()
+                None => (),
             }
-        };
+        }
         match self.fglobal.get(name) {
             Some(v) => Ok(v),
-            None => Err(E::Unbound(name.clone()))
+            None => Err(E::Unbound(name.clone())),
         }
     }
-
 }

@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
-use ::expr::{Expr, Type, Kint, Kfloat, Result, Error as E};
-use ::env::{Env};
+use expr::{Expr, Type, Kint, Kfloat, Result, Error as E};
+use env::Env;
 use ::util::*;
-use ::eval::funcall;
+use eval::funcall;
 
 // since rust's macro cannot treat binop, work around macro is needed.
 macro_rules! expr {
@@ -41,27 +41,35 @@ def_arith_op!(k_mul, *, kint(1));
 def_arith_op!(k_div, /, kint(1));
 
 pub fn k_concat(mut env: &mut Env, args: &Expr) -> Result<Expr> {
-    let res = f_foldl(env, &|_, acc, x| match (acc, x) {
-        (&Expr::Str(ref acc), &Expr::Str(ref x)) => Ok(kstr(format!("{}{}",acc, x))),
-        (_, y) => Err(E::Type(Type::Str, y.clone()))
-    }
-                      , &kstr(""), &args);
+    let res = f_foldl(env,
+                      &|_, acc, x| {
+                          match (acc, x) {
+                              (&Expr::Str(ref acc), &Expr::Str(ref x)) => {
+                                  Ok(kstr(format!("{}{}", acc, x)))
+                              }
+                              (_, y) => Err(E::Type(Type::Str, y.clone())),
+                          }
+                      },
+                      &kstr(""),
+                      &args);
     Ok(try!(res).clone())
 }
 
 
 pub fn k_funcall(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     match args {
-        &Expr::Cons(ref f, ref args) => match f.deref() {
-            &Expr::Proc(ref f) => funcall(env, f , args.deref()),
-            f => Err(E::NotFunction(f.clone()))
-        },
-        args => Err(E::Form(args.clone()))
+        &Expr::Cons(ref f, ref args) => {
+            match f.deref() {
+                &Expr::Proc(ref f) => funcall(env, f, args.deref()),
+                f => Err(E::NotFunction(f.clone())),
+            }
+        }
+        args => Err(E::Form(args.clone())),
     }
 }
 
 pub fn k_cons(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (car, Any) (cdr, Any));
+    get_args!(args, (car, Any)(cdr, Any));
     Ok(kcons(car.clone(), cdr.clone()))
 }
 
@@ -77,7 +85,7 @@ pub fn k_cdr(_: &mut Env, args: &Expr) -> Result<Expr> {
 }
 
 pub fn k_equal_p(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (x, Any) (y, Any));
+    get_args!(args, (x, Any)(y, Any));
     if x == y {
         Ok(ksym("t"))
     } else {
@@ -90,12 +98,12 @@ pub fn k_string_to_number(_: &mut Env, args: &Expr) -> Result<Expr> {
     match s.parse() {
         // TODO: handle float case
         Ok(i) => Ok(Expr::Int(i)),
-        Err(_) => Err(E::InvalidArgument(args.clone()))
+        Err(_) => Err(E::InvalidArgument(args.clone())),
     }
 }
 
 pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
-    get_args!(args, (s, Str) &optional (start, Int) (end, Int));
+    get_args!(args, (s, Str) & optional(start, Int)(end, Int));
     let len = s.len();
     let ilen = len as Kint;
     let start = start.unwrap_or(0);
@@ -109,21 +117,20 @@ pub fn k_substring(_: &mut Env, args: &Expr) -> Result<Expr> {
     }
 }
 
-pub fn init(mut env: &mut Env) -> Result<()>{
-    env.fregister("+",       kprim("k_add", k_add));
-    env.fregister("-",       kprim("k_sub", k_sub));
-    env.fregister("/",       kprim("k_div", k_div));
-    env.fregister("*",       kprim("k_mul", k_mul));
-    env.fregister("concat",  kprim("k_concat", k_concat));
+pub fn init(mut env: &mut Env) -> Result<()> {
+    env.fregister("+", kprim("k_add", k_add));
+    env.fregister("-", kprim("k_sub", k_sub));
+    env.fregister("/", kprim("k_div", k_div));
+    env.fregister("*", kprim("k_mul", k_mul));
+    env.fregister("concat", kprim("k_concat", k_concat));
     env.fregister("funcall", kprim("k_funcall", k_funcall));
-    env.fregister("cons",    kprim("k_cons", k_cons));
-    env.fregister("car",     kprim("k_car", k_car));
-    env.fregister("cdr",     kprim("k_cdr", k_cdr));
-    env.fregister("equal?",  kprim("k_equal_p", k_equal_p));
-    env.fregister("string-to-number", kprim("k_string_to_number", k_string_to_number));
+    env.fregister("cons", kprim("k_cons", k_cons));
+    env.fregister("car", kprim("k_car", k_car));
+    env.fregister("cdr", kprim("k_cdr", k_cdr));
+    env.fregister("equal?", kprim("k_equal_p", k_equal_p));
+    env.fregister("string-to-number",
+                  kprim("k_string_to_number", k_string_to_number));
     env.fregister("substring", kprim("k_substring", k_substring));
     env.register("t", ksym("t"));
     Ok(())
 }
-
-

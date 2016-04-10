@@ -1,7 +1,7 @@
-use ::expr::Result;
-use ::env::Env;
-use ::read::read_in;
-use ::eval::eval;
+use expr::Result;
+use env::Env;
+use read::read_in;
+use eval::eval;
 
 
 pub fn init(mut env: &mut Env) -> Result<()> {
