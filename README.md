@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/KeenS/kappaLisp.svg?branch=master)](https://travis-ci.org/KeenS/kappaLisp)
+
 # κLisp
 WIP
 
