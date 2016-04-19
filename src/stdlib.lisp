@@ -6,8 +6,11 @@
   (list 'fset (list 'quote name)
         (cons 'lambda (cons params body))))
 
-(defmacro defparameter (name val)
+(defmacro setq (name val)
   (list 'set (list 'quote name) val))
+
+(defmacro defparameter (name val)
+  (list 'setq name val))
 
 (defun assoc (key list)
   (if list
