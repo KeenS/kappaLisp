@@ -3,10 +3,11 @@ extern crate time;
 use std::ops::Deref;
 
 use expr::{Expr, Type, Error as E, Result};
-use eval::funcall;
+use eval::{eval, funcall};
 use env::Env;
 use ::util::*;
 use datetime::datetime_info_to_timespec;
+use read::read_in;
 
 
 pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
@@ -90,5 +91,11 @@ pub fn init(mut env: &mut Env) -> Result<()> {
                   kprim("k_skk_current_date_1", k_skk_current_date_1));
     env.fregister("skk-current-date",
                   kprim("k_skk_current_date", k_skk_current_date));
+    let lisp = include_str!("skk.lisp");
+    let mut input = lisp.chars().peekable();
+    while let Some(e) = read_in(&mut input) {
+        let _ = try!(eval(&mut env, &e));
+    }
+
     Ok(())
 }
