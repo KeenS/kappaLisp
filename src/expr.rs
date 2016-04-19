@@ -42,7 +42,9 @@ pub enum Type {
 pub enum Proc {
     Lambda(Rc<Expr>, Rc<Expr>),
     Prim(String, Rc<Fn(&mut Env, &Expr) -> Result<Expr>>),
+    Expr(Rc<Expr>)
 }
+
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
@@ -103,6 +105,7 @@ impl fmt::Debug for Proc {
         match self {
             &Proc::Lambda(ref param, ref body) => write!(f, "Lambda({}, {})", param, body),
             &Proc::Prim(ref name, _) => write!(f, "Prim(#<native function {}>)", name),
+            &Proc::Expr(ref e) => write!(f, "{}", e),
         }
     }
 }
@@ -165,6 +168,7 @@ impl fmt::Display for Proc {
         match self {
             &Proc::Lambda(ref args, ref body) => write!(f, "(lambda {} {})", args, body),
             &Proc::Prim(ref name, _) => write!(f, "{}", name),
+            &Proc::Expr(ref e) => write!(f, "{}", e),
         }
     }
 }

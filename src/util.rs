@@ -40,6 +40,11 @@ pub fn kproc(p: Proc) -> Expr {
 }
 
 #[inline]
+pub fn kmacro(p: Proc) -> Expr {
+    kcons(ksym("macro"), Expr::Proc(p))
+}
+
+#[inline]
 pub fn klambda(param: Expr, body: Expr) -> Proc {
     Proc::Lambda(Rc::new(param), Rc::new(body))
 }
@@ -51,6 +56,16 @@ pub fn kprim<S: Into<String>, F: 'static + Fn(&mut Env, &Expr) -> Result<Expr> +
     Proc::Prim(name.into(), Rc::new(f))
 }
 
+
+pub fn is_macro(exp: &Proc) -> bool {
+    match exp {
+        &Proc::Expr(ref exp) => match exp.deref() {
+            &Expr::Cons(ref sym, _) => sym.deref() == &kstr("macro"),
+            _ => false
+        },
+        _ => false
+    }
+}
 
 pub fn car(cons: &Expr) -> Result<Expr> {
     match cons {
@@ -180,7 +195,6 @@ macro_rules! gen_match {
                 },
                 &Expr::Nil => {
                     (None, gen_match!($args, &optional $($other)*))
-                    
                 },
                 args => return Err(E::InvalidArgument(args.clone()))
             };

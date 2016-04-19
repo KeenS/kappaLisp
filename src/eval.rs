@@ -74,6 +74,7 @@ pub fn funcall(mut env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
             env.end_local();
             ret
         }
+        f => Err(E::NotFunction(kproc(f.clone())))
     }
 }
 
@@ -93,13 +94,13 @@ fn f_lambda(_: &mut Env, args: &Expr) -> Result<Proc> {
 }
 
 fn k_lambda(mut env: &mut Env, args: &Expr) -> Result<Expr> {
-    Ok(Expr::Proc(try!(f_lambda(env, args))))
+    Ok(kproc(try!(f_lambda(env, args))))
 }
 
 
 fn k_feval(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     match args {
-        &Expr::Cons(ref car, _) => Ok(Expr::Proc(try!(feval(env, car.deref())))),
+        &Expr::Cons(ref car, _) => Ok(kproc(try!(feval(env, car.deref())))),
         _ => unreachable!(),
     }
 }
@@ -170,7 +171,7 @@ fn feval(mut env: &mut Env, expr: &Expr) -> Result<Proc> {
                 &Expr::Sym(ref sym) => {
                     match &sym[..] {
                         "lambda" => f_lambda(env, rest.deref()),
-                        _ => Err(E::NotFunction(expr.clone())),
+                        _ => Ok(Proc::Expr(Rc::new(try!(eval(env, expr))))),
                     }
                 }
                 _ => Err(E::NotFunction(expr.clone())),
@@ -181,6 +182,20 @@ fn feval(mut env: &mut Env, expr: &Expr) -> Result<Proc> {
     }
 }
 
+
+pub fn macro_fn(mut env: &mut Env, p: &Proc) -> Result<Option<Proc>> {
+    match p {
+        &Proc::Expr(ref exp) => match exp.deref() {
+            &Expr::Cons(ref sym, ref f) => if sym.deref() == &ksym("macro") {
+                Ok(Some(try!(feval(env, f.deref()))))
+            } else {
+                Ok(None)
+            },
+            _ => Ok(None)
+        },
+        _ => Ok(None)
+    }
+}
 
 pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
     match expr {
@@ -218,8 +233,16 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
                         "if" => k_if(env, cdr),
                         _ => {
                             let f = try!(feval(env, car));
-                            let arg = try!(f_map(env, &|env, x| eval(env, x), cdr));
-                            funcall(env, &f, &arg)
+                            match try!(macro_fn(env, &f)) {
+                                Some(f) => {
+                                    let body = try!(funcall(env, &f, cdr));
+                                    eval(env, &body)
+                                },
+                                None => {
+                                    let arg = try!(f_map(env, &|env, x| eval(env, x), cdr));
+                                    funcall(env, &f, &arg)
+                                }
+                            }
                         }
                     }
                 }
