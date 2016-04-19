@@ -77,12 +77,12 @@ fn test_cdr() {
 
 #[test]
 fn test_equal_p() {
-    assert_eq!(run_new("(equal? 1 1)"), Ok(ksym("t")));
-    assert_eq!(run_new("(equal? 'sym 'sym)"), Ok(ksym("t")));
-    assert_eq!(run_new("(equal? \"str\" \"str\")"), Ok(ksym("t")));
-    assert_eq!(run_new("(equal? 1 \"str\")"), Ok(knil()));
-    assert_eq!(run_new("(equal? 'sym \"str\")"), Ok(knil()));
-    assert_eq!(run_new("(equal? (list \"str\") \"str\")"), Ok(knil()));
+    assert_eq!(run_new("(equalp 1 1)"), Ok(ksym("t")));
+    assert_eq!(run_new("(equalp 'sym 'sym)"), Ok(ksym("t")));
+    assert_eq!(run_new("(equalp \"str\" \"str\")"), Ok(ksym("t")));
+    assert_eq!(run_new("(equalp 1 \"str\")"), Ok(knil()));
+    assert_eq!(run_new("(equalp 'sym \"str\")"), Ok(knil()));
+    assert_eq!(run_new("(equalp (list \"str\") \"str\")"), Ok(knil()));
 }
 
 
