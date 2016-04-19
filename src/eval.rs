@@ -7,7 +7,7 @@ use ::util::*;
 
 fn bind_name(mut env: &mut Env, name: &Expr, value: Expr) -> Result<()> {
     match name {
-        &Expr::Sym(ref name) => Ok(env.register(name.clone(), value)),
+        &Expr::Sym(ref name) => Ok(env.register(name.deref().clone(), value)),
         name => return Err(E::Form(name.clone())),
     }
 }
@@ -127,7 +127,7 @@ fn k_fset(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let f = try!(feval(env, f));
     let tmp = klist!(s);
     get_args!(&tmp, (s, Sym));
-    env.fregister(s.clone(), f.clone());
+    env.fregister(s.deref().clone(), f.clone());
     return Ok(knil());
 }
 
@@ -137,7 +137,7 @@ fn k_set(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let e = try!(eval(env, e));
     let tmp = klist!(s);
     get_args!(&tmp, (s, Sym));
-    env.register(s.clone(), e.clone());
+    env.register(s.deref().clone(), e.clone());
     return Ok(knil());
 }
 
@@ -194,7 +194,7 @@ pub fn eval(mut env: &mut Env, expr: &Expr) -> Result<Expr> {
             match env.find(&name.to_owned()) {
                 Ok(v) => Ok(v.clone()),
                 Err(m) => {
-                    if name == "t" {
+                    if name.deref() == "t" {
                         Ok(ksym("t"))
                     } else {
                         Err(m)

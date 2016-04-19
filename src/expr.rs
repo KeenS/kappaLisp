@@ -19,8 +19,8 @@ pub enum Expr {
     Float(Kfloat),
     Cons(Rc<Expr>, Rc<Expr>),
     Nil,
-    Sym(String),
-    Str(String),
+    Sym(Rc<String>),
+    Str(Rc<String>),
     Proc(Proc),
     EOF,
 }

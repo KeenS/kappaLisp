@@ -26,12 +26,12 @@ pub fn knil() -> Expr {
 
 #[inline]
 pub fn ksym<S: Into<String>>(s: S) -> Expr {
-    Expr::Sym(s.into())
+    Expr::Sym(Rc::new(s.into()))
 }
 
 #[inline]
 pub fn kstr<S: Into<String>>(s: S) -> Expr {
-    Expr::Str(s.into())
+    Expr::Str(Rc::new(s.into()))
 }
 
 #[inline]
