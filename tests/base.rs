@@ -45,6 +45,63 @@ fn test_div(){
 }
 
 #[test]
+fn test_gt(){
+    assert_eq!(run_new("(> 1 2)"), Ok(kbool(false)));
+    assert_eq!(run_new("(> 1 1)"), Ok(kbool(false)));
+    assert_eq!(run_new("(> 2 1)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(> -1 1.0)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(> 1.0 -1)"), Ok(kbool(false)));
+}
+
+#[test]
+fn test_ge(){
+    assert_eq!(run_new("(>= 1 2)"), Ok(kbool(false)));
+    assert_eq!(run_new("(>= 1 1)"), Ok(kbool(true)));
+    assert_eq!(run_new("(>= 2 1)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(>= -1 1.0)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(>= 1.0 -1)"), Ok(kbool(false)));
+}
+
+#[test]
+fn test_lt(){
+    assert_eq!(run_new("(< 1 2)"), Ok(kbool(true)));
+    assert_eq!(run_new("(< 1 1)"), Ok(kbool(false)));
+    assert_eq!(run_new("(< 2 1)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(< -1 1.0)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(< 1.0 -1)"), Ok(kbool(false)));
+}
+
+#[test]
+fn test_le(){
+    assert_eq!(run_new("(<= 1 2)"), Ok(kbool(true)));
+    assert_eq!(run_new("(<= 1 1)"), Ok(kbool(true)));
+    assert_eq!(run_new("(<= 2 1)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(<= -1 1.0)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(<= 1.0 -1)"), Ok(kbool(false)));
+}
+
+#[test]
+fn test_eq(){
+    assert_eq!(run_new("(= 1 2)"), Ok(kbool(false)));
+    assert_eq!(run_new("(= 1 1)"), Ok(kbool(true)));
+    assert_eq!(run_new("(= 2 1)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(= -1 1.0)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(= -1 -1.0)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(= 1.0 -1)"), Ok(kbool(false)));
+}
+
+#[test]
+fn test_neq(){
+    assert_eq!(run_new("(/= 1 2)"), Ok(kbool(true)));
+    assert_eq!(run_new("(/= 1 1)"), Ok(kbool(false)));
+    assert_eq!(run_new("(/= 2 1)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(/= -1 1.0)"), Ok(kbool(true)));
+    // assert_eq!(run_new("(/= -1 -1.0)"), Ok(kbool(false)));
+    // assert_eq!(run_new("(/= 1.0 -1)"), Ok(kbool(true)));
+}
+
+
+#[test]
 fn test_nested_arith(){
     assert_eq!(run_new("(/ (- (+ 1 (* 2 3)) 3) 2)"), Ok(kint(2)));
 }

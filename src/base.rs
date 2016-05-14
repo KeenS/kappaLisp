@@ -40,6 +40,23 @@ def_arith_op!(k_sub, -, kint(0));
 def_arith_op!(k_mul, *, kint(1));
 def_arith_op!(k_div, /, kint(1));
 
+// FIXME: accept multiple arguments
+macro_rules! def_arith_cmp {
+    ($name: ident, $op: tt) => {
+        pub fn $name(mut env: &mut Env, args: &Expr) -> Result<Expr> {
+            get_args!(args, (x, Int) (y, Int));
+            Ok(kbool(expr!(x $op y)))
+        }
+    }
+}
+
+def_arith_cmp!(k_gt, >);
+def_arith_cmp!(k_ge, >=);
+def_arith_cmp!(k_lt, <);
+def_arith_cmp!(k_le, <=);
+def_arith_cmp!(k_eq, ==);
+def_arith_cmp!(k_neq, !=);
+
 pub fn k_concat(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     let res = f_foldl(env,
                       &|_, acc, x| {
@@ -122,6 +139,12 @@ pub fn init(mut env: &mut Env) -> Result<()> {
     env.fregister("-", kprim("k_sub", k_sub));
     env.fregister("/", kprim("k_div", k_div));
     env.fregister("*", kprim("k_mul", k_mul));
+    env.fregister(">", kprim("k_gt", k_gt));
+    env.fregister(">=", kprim("k_ge", k_ge));
+    env.fregister("<", kprim("k_lt", k_lt));
+    env.fregister("<=", kprim("k_le", k_le));
+    env.fregister("=", kprim("k_eq", k_eq));
+    env.fregister("/=", kprim("k_neq", k_neq));
     env.fregister("concat", kprim("k_concat", k_concat));
     env.fregister("funcall", kprim("k_funcall", k_funcall));
     env.fregister("cons", kprim("k_cons", k_cons));

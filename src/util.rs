@@ -5,6 +5,14 @@ use expr::{Expr, Kint, Kfloat, Type, Proc, Error as E, Result};
 use env::Env;
 
 #[inline]
+pub fn kbool(b: bool) -> Expr {
+    match b {
+        true => ksym("t"),
+        false => Expr::Nil,
+    }
+}
+
+#[inline]
 pub fn kint(i: Kint) -> Expr {
     Expr::Int(i)
 }
