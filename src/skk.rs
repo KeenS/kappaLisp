@@ -44,9 +44,9 @@ pub fn k_skk_current_date_1(_: &mut Env, args: &Expr) -> Result<Expr> {
     Ok(klist!(year, month, mday, wday, hour, min, sec))
 }
 
-pub fn k_skk_current_date(mut env: &mut Env, args: &Expr) -> Result<Expr> {
+pub fn k_skk_current_date(env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, &optional(f, Proc)(format, Any)(and_time, Any));
-    let date_information = k_skk_current_date_1(&mut env, &knil())?;
+    let date_information = k_skk_current_date_1(env, &knil())?;
     let nil = knil();
     let format = format.unwrap_or(&nil);
     let gengo = knil(); //or t

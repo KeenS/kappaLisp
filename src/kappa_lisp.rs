@@ -16,13 +16,13 @@ pub fn init(env: &mut Env) -> Result<()> {
 }
 
 pub fn run(env: &mut Env, sexp: &str) -> Result<Expr> {
-    let expr = read(sexp);
+    let expr = read(sexp)?;
     eval(env, &expr)
 }
 
 pub fn run_new(sexp: &str) -> Result<Expr> {
     let mut env = Env::new();
     init(&mut env)?;
-    let expr = read(sexp);
+    let expr = read(sexp)?;
     eval(&mut env, &expr)
 }

@@ -67,8 +67,8 @@ pub fn kprim<S: Into<String>, F: 'static + Fn(&mut Env, &Expr) -> Result<Expr> +
 
 pub fn is_macro(exp: &Proc) -> bool {
     match exp {
-        &Proc::Expr(ref exp) => match exp.deref() {
-            &Expr::Cons(ref sym, _) => sym.deref() == &kstr("macro"),
+        Proc::Expr(exp) => match exp.deref() {
+            Expr::Cons(sym, _) => sym.deref() == &kstr("macro"),
             _ => false,
         },
         _ => false,
@@ -77,14 +77,14 @@ pub fn is_macro(exp: &Proc) -> bool {
 
 pub fn car(cons: &Expr) -> Result<Expr> {
     match cons {
-        &Expr::Cons(ref car, _) => Ok(car.deref().clone()),
+        Expr::Cons(car, _) => Ok(car.deref().clone()),
         arg => Err(E::Type(Type::Cons, arg.clone())),
     }
 }
 
 pub fn cdr(cons: &Expr) -> Result<Expr> {
     match cons {
-        &Expr::Cons(_, ref cdr) => Ok(cdr.deref().clone()),
+        Expr::Cons(_, cdr) => Ok(cdr.deref().clone()),
         arg => Err(E::Type(Type::Cons, arg.clone())),
     }
 }
@@ -108,7 +108,7 @@ macro_rules! get_args_one {
             &Expr::Nil => Ok(None),
             v => Ok(Some(get_args_one!(v, $($ident)+)?))
         }
-     );
+    );
     ($v:expr, Int) => (
         match $v {
             &Expr::Int(x) => Ok(x),
@@ -173,10 +173,10 @@ macro_rules! get_args_one {
 macro_rules! gen_pattern {
     (($var: pat, $($ident: tt)*) $($other:tt) *) => (
         ($var, gen_pattern!($($other)*))
-            );
+    );
     (&optional ($var: pat, $($ident: tt)*) $($other:tt) *) => (
         ($var, gen_pattern!($($other)*))
-            );
+    );
     () => (())
 }
 
@@ -184,39 +184,39 @@ macro_rules! gen_match {
     ($args: expr, ($var: pat, $($ident: tt)+) $($other:tt) *) =>
         (
             match $args {
-                &Expr::Cons(ref hd, ref tl) => {
+                Expr::Cons(hd, tl) => {
                     let v = get_args_one!(hd.deref(), $($ident)+)?;
                     (v, gen_match!(tl.deref(), $($other)*))
                 },
-                &Expr::Nil => return Err(E::ArityShort),
+                Expr::Nil => return Err(E::ArityShort),
                 args => return Err(E::InvalidArgument(args.clone()))
             };
-            );
+        );
     ($args: expr, &optional ($var: pat, $($ident: tt)+) $($other:tt) *) =>
         (
             match $args {
-                &Expr::Cons(ref hd, ref tl) => {
+                Expr::Cons(hd, tl) => {
                     let v = get_args_one!(hd.deref(), $($ident)+)?;
                     (Some(v), gen_match!(tl.deref(), &optional $($other)*))
                 },
-                &Expr::Nil => {
+                Expr::Nil => {
                     (None, gen_match!($args, &optional $($other)*))
                 },
                 args => return Err(E::InvalidArgument(args.clone()))
             };
-            );
+        );
     ($args: expr, &optional) => (
         match $args {
-            &Expr::Nil => (),
+            Expr::Nil => (),
             _ => return Err(E::ArityExceed)
         }
-        );
+    );
     ($args: expr, ) => (
         match $args {
-            &Expr::Nil => (),
+            Expr::Nil => (),
             _ => return Err(E::ArityExceed)
         }
-        );
+    );
 }
 
 #[macro_export]
@@ -224,13 +224,13 @@ macro_rules! get_args {
     ($args: expr, $($other:tt) *) =>
         (
             let gen_pattern!($($other)*) = gen_match!($args, $($other)*);
-            ) ;
+        ) ;
     ($args: expr, ) => (
         let () = gen_match!($args,);
-        );
+    );
     ($args: expr) => (
         let () = gen_match!($args,);
-        );
+    );
 }
 
 pub fn f_foldl<F>(env: &mut Env, f: &F, init: &Expr, args: &Expr) -> Result<Expr>
@@ -242,7 +242,7 @@ where
     let nil = &Expr::Nil;
     while head != nil {
         match head {
-            &Expr::Cons(ref car, ref cdr) => {
+            Expr::Cons(car, cdr) => {
                 res = f(env, &res, car)?;
                 head = cdr;
             }
@@ -261,8 +261,8 @@ where
     F: Fn(&mut Env, &Expr, &Expr) -> Result<Expr>,
 {
     match args {
-        &Expr::Nil => Ok(init.clone()),
-        &Expr::Cons(ref car, ref cdr) => {
+        Expr::Nil => Ok(init.clone()),
+        Expr::Cons(car, cdr) => {
             let v = f_foldr(env, f, init, cdr)?;
             f(env, &v, car)
         }

@@ -22,7 +22,6 @@ pub enum Expr {
     Sym(Rc<String>),
     Str(Rc<String>),
     Proc(Proc),
-    EOF,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -46,6 +45,7 @@ pub enum Proc {
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    ReadError,
     InvalidArgument(Expr),
     Type(Type, Expr),
     ArityShort,
@@ -85,7 +85,7 @@ impl<'a> From<&'a Expr> for Expr {
 impl PartialEq for Proc {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (&Proc::Lambda(ref param1, ref body1), &Proc::Lambda(ref param2, ref body2)) => {
+            (Proc::Lambda(param1, body1), Proc::Lambda(param2, body2)) => {
                 param1 == param2 && body1 == body2
             }
             _ => false,
@@ -96,9 +96,9 @@ impl PartialEq for Proc {
 impl fmt::Debug for Proc {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Proc::Lambda(ref param, ref body) => write!(f, "Lambda({}, {})", param, body),
-            &Proc::Prim(ref name, _) => write!(f, "Prim(#<native function {}>)", name),
-            &Proc::Expr(ref e) => write!(f, "{}", e),
+            Proc::Lambda(param, body) => write!(f, "Lambda({}, {})", param, body),
+            Proc::Prim(name, _) => write!(f, "Prim(#<native function {}>)", name),
+            Proc::Expr(e) => write!(f, "{}", e),
         }
     }
 }
@@ -106,21 +106,21 @@ impl fmt::Debug for Proc {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Expr::Int(i) => write!(f, "{}", i),
-            &Expr::Float(fl) => write!(f, "{}", fl),
+            Expr::Int(i) => write!(f, "{}", i),
+            Expr::Float(fl) => write!(f, "{}", fl),
             // :TODO: pretty print for lists
-            &Expr::Cons(ref car, ref cdr) => {
+            Expr::Cons(car, cdr) => {
                 let mut tmp = cdr.deref();
                 write!(f, "(")?;
                 write!(f, "{}", car)?;
 
                 loop {
                     match tmp {
-                        &Expr::Cons(ref car, ref cdr) => {
+                        Expr::Cons(car, cdr) => {
                             write!(f, " {}", car)?;
                             tmp = cdr.deref()
                         }
-                        &Expr::Nil => break,
+                        Expr::Nil => break,
                         cdr => {
                             write!(f, " . {}", cdr)?;
                             break;
@@ -129,11 +129,10 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             }
-            &Expr::Nil => write!(f, "nil"),
-            &Expr::Sym(ref s) => write!(f, "{}", s),
-            &Expr::Str(ref s) => write!(f, "\"{}\"", s),
-            &Expr::Proc(ref p) => write!(f, "{}", p),
-            &Expr::EOF => write!(f, "<EOF>"),
+            Expr::Nil => write!(f, "nil"),
+            Expr::Sym(s) => write!(f, "{}", s),
+            Expr::Str(s) => write!(f, "\"{}\"", s),
+            Expr::Proc(p) => write!(f, "{}", p),
         }
     }
 }
@@ -141,14 +140,14 @@ impl fmt::Display for Expr {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Type::Int => write!(f, "integer"),
-            &Type::Float => write!(f, "float"),
-            &Type::Cons => write!(f, "cons"),
-            &Type::Nil => write!(f, "nil"),
-            &Type::Sym => write!(f, "symbol"),
-            &Type::Str => write!(f, "string"),
-            &Type::Proc => write!(f, "procedure"),
-            &Type::Any => write!(f, "any"),
+            Type::Int => write!(f, "integer"),
+            Type::Float => write!(f, "float"),
+            Type::Cons => write!(f, "cons"),
+            Type::Nil => write!(f, "nil"),
+            Type::Sym => write!(f, "symbol"),
+            Type::Str => write!(f, "string"),
+            Type::Proc => write!(f, "procedure"),
+            Type::Any => write!(f, "any"),
         }
     }
 }
@@ -156,9 +155,9 @@ impl fmt::Display for Type {
 impl fmt::Display for Proc {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Proc::Lambda(ref args, ref body) => write!(f, "(lambda {} {})", args, body),
-            &Proc::Prim(ref name, _) => write!(f, "{}", name),
-            &Proc::Expr(ref e) => write!(f, "{}", e),
+            Proc::Lambda(args, body) => write!(f, "(lambda {} {})", args, body),
+            Proc::Prim(name, _) => write!(f, "{}", name),
+            Proc::Expr(e) => write!(f, "{}", e),
         }
     }
 }
@@ -166,16 +165,15 @@ impl fmt::Display for Proc {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter) -> result::Result<(), E> {
         let res = match self {
-            &Error::InvalidArgument(ref args) => write!(f, "invalid argument: {}", args),
-            &Error::Type(ref t, ref args) => {
-                write!(f, "type mismatch: expected: {}, got: {}", t, args)
-            }
-            &Error::ArityShort => write!(f, "too few argument"),
-            &Error::ArityExceed => write!(f, "too many argument"),
-            &Error::Form(ref e) => write!(f, "invalid form: {}", e),
-            &Error::NotFunction(ref e) => write!(f, "not a function: {}", e),
-            &Error::Unbound(ref s) => write!(f, "unbound variable: {}", s),
-            &Error::User(ref s) => write!(f, "user error: {}", s),
+            Error::ReadError => write!(f, "read error"),
+            Error::InvalidArgument(args) => write!(f, "invalid argument: {}", args),
+            Error::Type(t, args) => write!(f, "type mismatch: expected: {}, got: {}", t, args),
+            Error::ArityShort => write!(f, "too few argument"),
+            Error::ArityExceed => write!(f, "too many argument"),
+            Error::Form(e) => write!(f, "invalid form: {}", e),
+            Error::NotFunction(e) => write!(f, "not a function: {}", e),
+            Error::Unbound(s) => write!(f, "unbound variable: {}", s),
+            Error::User(s) => write!(f, "user error: {}", s),
         };
         res?;
         Ok(())

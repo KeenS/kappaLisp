@@ -16,7 +16,7 @@ macro_rules! def_arith_op {
     ($name: ident, $op: tt, $init: expr) => {
         pub fn $name(env: &mut Env, args: &Expr) -> Result<Expr> {
             let (init, args) = match args {
-                &Expr::Cons(ref hd, ref tl) => match tl.deref() {
+                Expr::Cons(hd, tl) => match tl.deref() {
                     tl @ &Expr::Cons(_, _) => (hd.deref().clone(), tl),
                     _ => ($init, args),
                 },

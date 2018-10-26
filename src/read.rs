@@ -2,7 +2,7 @@ use std::iter::Peekable;
 use std::ops::Deref;
 use std::str::{Chars, FromStr};
 
-use expr::{Expr, Kfloat, Kint};
+use expr::{Error, Expr, Kfloat, Kint, Result};
 use util::*;
 
 fn next_nonwhitespaces(input: &mut Peekable<Chars>, first: char) -> Option<char> {
@@ -191,10 +191,10 @@ pub fn read_in(input: &mut Peekable<Chars>) -> Option<Expr> {
     read_aux(input, ' ')
 }
 
-pub fn read(s: &str) -> Expr {
+pub fn read(s: &str) -> Result<Expr> {
     let mut input = s.chars().peekable();
     match read_aux(&mut input, ' ') {
-        Some(e) => e,
-        None => Expr::EOF,
+        Some(e) => Ok(e),
+        None => Err(Error::ReadError),
     }
 }

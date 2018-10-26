@@ -21,7 +21,7 @@ fn bind_names(env: &mut Env, params: &Expr, args: &Expr) -> Result<()> {
     let nil = &knil();
     while phead != nil || ahead != nil {
         match phead {
-            &Expr::Cons(ref pcar, ref pcdr) => {
+            Expr::Cons(pcar, pcdr) => {
                 let pcar = pcar.deref();
                 if pcar == &optional {
                     in_optional = true;
@@ -30,7 +30,7 @@ fn bind_names(env: &mut Env, params: &Expr, args: &Expr) -> Result<()> {
                 }
                 if pcar == &rest {
                     match pcdr.deref() {
-                        &Expr::Cons(ref name, ref tail) => {
+                        Expr::Cons(name, tail) => {
                             if tail.deref() != nil {
                                 return Err(E::Form(tail.deref().clone()));
                             }
@@ -42,12 +42,12 @@ fn bind_names(env: &mut Env, params: &Expr, args: &Expr) -> Result<()> {
                 }
 
                 match ahead {
-                    &Expr::Cons(ref acar, ref acdr) => {
+                    Expr::Cons(acar, acdr) => {
                         bind_name(env, pcar, acar.deref().clone())?;
                         phead = pcdr.deref();
                         ahead = acdr.deref();
                     }
-                    &Expr::Nil => {
+                    Expr::Nil => {
                         if !in_optional {
                             return Err(E::Form(pcar.clone()));
                         }
@@ -65,8 +65,8 @@ fn bind_names(env: &mut Env, params: &Expr, args: &Expr) -> Result<()> {
 
 pub fn funcall(env: &mut Env, f: &Proc, args: &Expr) -> Result<Expr> {
     match f {
-        &Proc::Prim(_, ref f) => f(env, args),
-        &Proc::Lambda(ref params, ref body) => {
+        Proc::Prim(_, f) => f(env, args),
+        Proc::Lambda(params, body) => {
             env.new_local();
             bind_names(env, params.deref(), args)?;
             let ret = eval(env, body.deref());
@@ -84,7 +84,7 @@ fn k_quote(_: &mut Env, args: &Expr) -> Result<Expr> {
 
 fn f_lambda(_: &mut Env, args: &Expr) -> Result<Proc> {
     match args {
-        &Expr::Cons(ref params, ref body) => Ok(klambda(
+        Expr::Cons(params, body) => Ok(klambda(
             params.deref().clone(),
             kcons(ksym("progn"), body.deref().clone()),
         )),
@@ -98,7 +98,7 @@ fn k_lambda(env: &mut Env, args: &Expr) -> Result<Expr> {
 
 fn k_feval(env: &mut Env, args: &Expr) -> Result<Expr> {
     match args {
-        &Expr::Cons(ref car, _) => Ok(kproc(feval(env, car.deref())?)),
+        Expr::Cons(car, _) => Ok(kproc(feval(env, car.deref())?)),
         _ => unreachable!(),
     }
 }
@@ -109,7 +109,7 @@ fn k_progn(env: &mut Env, args: &Expr) -> Result<Expr> {
     let mut res = knil();
     while head != nil {
         match head {
-            &Expr::Cons(ref car, ref cdr) => {
+            Expr::Cons(car, cdr) => {
                 res = eval(env, car.deref())?;
                 head = cdr.deref();
             }
@@ -155,29 +155,29 @@ fn k_if(env: &mut Env, args: &Expr) -> Result<Expr> {
 
 fn feval(env: &mut Env, expr: &Expr) -> Result<Proc> {
     match expr {
-        &Expr::Sym(ref sym) => match env.ffind(sym) {
+        Expr::Sym(sym) => match env.ffind(sym) {
             Ok(f) => Ok(f.clone()),
             Err(e) => Err(e),
         },
-        &Expr::Cons(ref op, ref rest) => {
+        Expr::Cons(op, rest) => {
             let op = op.deref();
             match op {
-                &Expr::Sym(ref sym) => match &sym[..] {
+                Expr::Sym(sym) => match &sym[..] {
                     "lambda" => f_lambda(env, rest.deref()),
                     _ => Ok(Proc::Expr(Rc::new(eval(env, expr)?))),
                 },
                 _ => Err(E::NotFunction(expr.clone())),
             }
         }
-        &Expr::Proc(ref f) => Ok(f.clone()),
+        Expr::Proc(f) => Ok(f.clone()),
         _ => Err(E::NotFunction(expr.clone())),
     }
 }
 
 pub fn macro_fn(env: &mut Env, p: &Proc) -> Result<Option<Proc>> {
     match p {
-        &Proc::Expr(ref exp) => match exp.deref() {
-            &Expr::Cons(ref sym, ref f) => if sym.deref() == &ksym("macro") {
+        Proc::Expr(exp) => match exp.deref() {
+            Expr::Cons(sym, f) => if sym.deref() == &ksym("macro") {
                 Ok(Some(feval(env, f.deref())?))
             } else {
                 Ok(None)
@@ -190,13 +190,10 @@ pub fn macro_fn(env: &mut Env, p: &Proc) -> Result<Option<Proc>> {
 
 pub fn eval(env: &mut Env, expr: &Expr) -> Result<Expr> {
     match expr {
-        &Expr::Nil
-        | &Expr::EOF
-        | &Expr::Str(_)
-        | &Expr::Int(_)
-        | &Expr::Float(_)
-        | &Expr::Proc(_) => Ok(expr.clone()),
-        &Expr::Sym(ref name) => match env.find(&name.to_owned()) {
+        Expr::Nil | Expr::Str(_) | Expr::Int(_) | Expr::Float(_) | Expr::Proc(_) => {
+            Ok(expr.clone())
+        }
+        Expr::Sym(name) => match env.find(&name.to_owned()) {
             Ok(v) => Ok(v.clone()),
             Err(m) => {
                 if name.deref() == "t" {
@@ -206,11 +203,11 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Expr> {
                 }
             }
         },
-        &Expr::Cons(ref car, ref cdr) => {
+        Expr::Cons(car, cdr) => {
             let car = car.deref();
             let cdr = cdr.deref();
             match car {
-                &Expr::Sym(ref sym) => {
+                Expr::Sym(sym) => {
                     match &sym[..] {
                         // Eval special forms first
                         "quote" => k_quote(env, cdr),
