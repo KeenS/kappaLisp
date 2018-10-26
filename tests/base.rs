@@ -1,17 +1,20 @@
 #[macro_use]
 extern crate kappa_lisp;
-use kappa_lisp::{run_new};
+use kappa_lisp::run_new;
 use kappa_lisp::util::*;
 
 #[test]
-fn test_funcall(){
+fn test_funcall() {
     assert_eq!(run_new("(funcall #'+ 1 2)"), Ok(kint(3)));
-    assert_eq!(run_new("(funcall #'(lambda (x y) (* x y)) 1 2)"), Ok(kint(2)));
+    assert_eq!(
+        run_new("(funcall #'(lambda (x y) (* x y)) 1 2)"),
+        Ok(kint(2))
+    );
     assert_eq!(run_new("(funcall (lambda (x y) (* x y)) 1 2)"), Ok(kint(2)))
 }
 
 #[test]
-fn test_add(){
+fn test_add() {
     assert_eq!(run_new("(+)"), Ok(kint(0)));
     assert_eq!(run_new("(+ 1)"), Ok(kint(1)));
     assert_eq!(run_new("(+ 1 2)"), Ok(kint(3)));
@@ -20,7 +23,7 @@ fn test_add(){
 }
 
 #[test]
-fn test_sub(){
+fn test_sub() {
     assert_eq!(run_new("(-)"), Ok(kint(0)));
     assert_eq!(run_new("(- 1)"), Ok(kint(-1)));
     assert_eq!(run_new("(- 1 2)"), Ok(kint(-1)));
@@ -28,7 +31,7 @@ fn test_sub(){
 }
 
 #[test]
-fn test_mul(){
+fn test_mul() {
     assert_eq!(run_new("(*)"), Ok(kint(1)));
     assert_eq!(run_new("(* 1)"), Ok(kint(1)));
     assert_eq!(run_new("(* 1 2.0)"), Ok(kfloat(2.0)));
@@ -36,7 +39,7 @@ fn test_mul(){
 }
 
 #[test]
-fn test_div(){
+fn test_div() {
     assert_eq!(run_new("(/)"), Ok(kint(1)));
     assert_eq!(run_new("(/ 1)"), Ok(kint(1)));
     assert_eq!(run_new("(/ 3 2)"), Ok(kint(1)));
@@ -45,7 +48,7 @@ fn test_div(){
 }
 
 #[test]
-fn test_gt(){
+fn test_gt() {
     assert_eq!(run_new("(> 1 2)"), Ok(kbool(false)));
     assert_eq!(run_new("(> 1 1)"), Ok(kbool(false)));
     assert_eq!(run_new("(> 2 1)"), Ok(kbool(true)));
@@ -54,7 +57,7 @@ fn test_gt(){
 }
 
 #[test]
-fn test_ge(){
+fn test_ge() {
     assert_eq!(run_new("(>= 1 2)"), Ok(kbool(false)));
     assert_eq!(run_new("(>= 1 1)"), Ok(kbool(true)));
     assert_eq!(run_new("(>= 2 1)"), Ok(kbool(true)));
@@ -63,7 +66,7 @@ fn test_ge(){
 }
 
 #[test]
-fn test_lt(){
+fn test_lt() {
     assert_eq!(run_new("(< 1 2)"), Ok(kbool(true)));
     assert_eq!(run_new("(< 1 1)"), Ok(kbool(false)));
     assert_eq!(run_new("(< 2 1)"), Ok(kbool(false)));
@@ -72,7 +75,7 @@ fn test_lt(){
 }
 
 #[test]
-fn test_le(){
+fn test_le() {
     assert_eq!(run_new("(<= 1 2)"), Ok(kbool(true)));
     assert_eq!(run_new("(<= 1 1)"), Ok(kbool(true)));
     assert_eq!(run_new("(<= 2 1)"), Ok(kbool(false)));
@@ -81,7 +84,7 @@ fn test_le(){
 }
 
 #[test]
-fn test_eq(){
+fn test_eq() {
     assert_eq!(run_new("(= 1 2)"), Ok(kbool(false)));
     assert_eq!(run_new("(= 1 1)"), Ok(kbool(true)));
     assert_eq!(run_new("(= 2 1)"), Ok(kbool(false)));
@@ -91,7 +94,7 @@ fn test_eq(){
 }
 
 #[test]
-fn test_neq(){
+fn test_neq() {
     assert_eq!(run_new("(/= 1 2)"), Ok(kbool(true)));
     assert_eq!(run_new("(/= 1 1)"), Ok(kbool(false)));
     assert_eq!(run_new("(/= 2 1)"), Ok(kbool(true)));
@@ -100,14 +103,13 @@ fn test_neq(){
     // assert_eq!(run_new("(/= 1.0 -1)"), Ok(kbool(true)));
 }
 
-
 #[test]
-fn test_nested_arith(){
+fn test_nested_arith() {
     assert_eq!(run_new("(/ (- (+ 1 (* 2 3)) 3) 2)"), Ok(kint(2)));
 }
 
 #[test]
-fn test_concat(){
+fn test_concat() {
     assert_eq!(run_new("(concat \"a\" \"b\" \"cd\")"), Ok(kstr("abcd")))
 }
 
@@ -116,8 +118,6 @@ fn test_cons() {
     assert_eq!(run_new("(cons 1 2)"), Ok(kcons(kint(1), kint(2))));
     assert_eq!(run_new("(cons () 2)"), Ok(kcons(knil(), kint(2))));
 }
-
-
 
 #[test]
 fn test_car() {
@@ -131,7 +131,6 @@ fn test_cdr() {
     assert_eq!(run_new("(cdr (list 1 2))"), Ok(klist!(kint(2))));
 }
 
-
 #[test]
 fn test_equal_p() {
     assert_eq!(run_new("(equalp 1 1)"), Ok(ksym("t")));
@@ -142,19 +141,16 @@ fn test_equal_p() {
     assert_eq!(run_new("(equalp (list \"str\") \"str\")"), Ok(knil()));
 }
 
-
 #[test]
 fn test_string_to_number() {
     assert_eq!(run_new("(string-to-number \"1\")"), Ok(kint(1)));
 }
-
 
 #[test]
 fn test_substring() {
     assert_eq!(run_new("(substring \"abcdefg\" 0 3)"), Ok(kstr("abc")));
     assert_eq!(run_new("(substring \"abcdefg\" 4 6)"), Ok(kstr("ef")));
 }
-
 
 #[test]
 fn test_t() {

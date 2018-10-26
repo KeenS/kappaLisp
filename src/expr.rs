@@ -1,13 +1,13 @@
-use std::rc::Rc;
-use std::fmt;
-use std::fmt::{Display, Formatter, Error as E};
-use std::error;
-use std::result;
 use std::convert::From;
+use std::error;
+use std::fmt;
+use std::fmt::{Display, Error as E, Formatter};
 use std::ops::Deref;
+use std::rc::Rc;
+use std::result;
 
 use env::Env;
-use ::util::*;
+use util::*;
 
 pub type Kfloat = f32;
 pub type Kint = isize;
@@ -25,7 +25,6 @@ pub enum Expr {
     EOF,
 }
 
-
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Type {
     Int,
@@ -42,9 +41,8 @@ pub enum Type {
 pub enum Proc {
     Lambda(Rc<Expr>, Rc<Expr>),
     Prim(String, Rc<Fn(&mut Env, &Expr) -> Result<Expr>>),
-    Expr(Rc<Expr>)
+    Expr(Rc<Expr>),
 }
-
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
@@ -57,8 +55,6 @@ pub enum Error {
     Unbound(String),
     User(String),
 }
-
-
 
 impl From<Kint> for Expr {
     fn from(i: Kint) -> Self {
@@ -86,15 +82,12 @@ impl<'a> From<&'a Expr> for Expr {
     }
 }
 
-
-
-
-
 impl PartialEq for Proc {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (&Proc::Lambda(ref param1, ref body1),
-             &Proc::Lambda(ref param2, ref body2)) => param1 == param2 && body1 == body2,
+            (&Proc::Lambda(ref param1, ref body1), &Proc::Lambda(ref param2, ref body2)) => {
+                param1 == param2 && body1 == body2
+            }
             _ => false,
         }
     }
@@ -110,7 +103,6 @@ impl fmt::Debug for Proc {
     }
 }
 
-
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -119,18 +111,18 @@ impl fmt::Display for Expr {
             // :TODO: pretty print for lists
             &Expr::Cons(ref car, ref cdr) => {
                 let mut tmp = cdr.deref();
-                try!(write!(f, "("));
-                try!(write!(f, "{}", car));
+                write!(f, "(")?;
+                write!(f, "{}", car)?;
 
                 loop {
                     match tmp {
                         &Expr::Cons(ref car, ref cdr) => {
-                            try!(write!(f, " {}", car));
+                            write!(f, " {}", car)?;
                             tmp = cdr.deref()
                         }
                         &Expr::Nil => break,
                         cdr => {
-                            try!(write!(f, " . {}", cdr));
+                            write!(f, " . {}", cdr)?;
                             break;
                         }
                     }
@@ -161,8 +153,6 @@ impl fmt::Display for Type {
     }
 }
 
-
-
 impl fmt::Display for Proc {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -172,7 +162,6 @@ impl fmt::Display for Proc {
         }
     }
 }
-
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter) -> result::Result<(), E> {
@@ -188,11 +177,10 @@ impl Display for Error {
             &Error::Unbound(ref s) => write!(f, "unbound variable: {}", s),
             &Error::User(ref s) => write!(f, "user error: {}", s),
         };
-        try!(res);
+        res?;
         Ok(())
     }
 }
-
 
 impl error::Error for Error {
     fn description(&self) -> &str {

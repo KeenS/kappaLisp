@@ -1,14 +1,13 @@
-use expr::Result;
 use env::Env;
-use read::read_in;
 use eval::eval;
+use expr::Result;
+use read::read_in;
 
-
-pub fn init(mut env: &mut Env) -> Result<()> {
+pub fn init(env: &mut Env) -> Result<()> {
     let lisp = include_str!("stdlib.lisp");
     let mut input = lisp.chars().peekable();
     while let Some(e) = read_in(&mut input) {
-        let _ = try!(eval(&mut env, &e));
+        let _ = eval(env, &e)?;
     }
     Ok(())
 }

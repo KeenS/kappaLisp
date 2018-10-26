@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::collections::LinkedList;
 
-use expr::{Expr, Proc, Error as E, Result};
+use expr::{Error as E, Expr, Proc, Result};
 
 pub struct Env {
     global: HashMap<String, Expr>,
@@ -9,7 +9,6 @@ pub struct Env {
     fglobal: HashMap<String, Proc>,
     flocal: LinkedList<HashMap<String, Proc>>,
 }
-
 
 impl Env {
     pub fn new() -> Env {

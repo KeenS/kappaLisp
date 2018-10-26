@@ -2,17 +2,16 @@ extern crate time;
 
 use std::ops::Deref;
 
-use expr::{Expr, Type, Error as E, Result};
-use eval::{eval, funcall};
-use env::Env;
-use ::util::*;
 use datetime::datetime_info_to_timespec;
+use env::Env;
+use eval::{eval, funcall};
+use expr::{Error as E, Expr, Result, Type};
 use read::read_in;
-
+use util::*;
 
 pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, (op, Sym));
-    let skk_num_list = try!(env.find(&"skk-num-list".to_owned())).clone();
+    let skk_num_list = env.find(&"skk-num-list".to_owned())?.clone();
     get_args!(&skk_num_list, (x, Int)(y, Int));
     let res = match &op[..] {
         "+" => x + y,
@@ -27,12 +26,14 @@ pub fn k_skk_calc(env: &mut Env, args: &Expr) -> Result<Expr> {
 pub fn k_skk_current_date_1(_: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, &optional(specified_time, Any));
     // TODO: don't allocate month/wday table every time
-    let mvec = vec!["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
-                    "Dec"];
+    let mvec = vec![
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
     let wvec = vec!["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    let now = specified_time.map_or(Ok(time::now()),
-                                    |st| datetime_info_to_timespec(st).map(|tm| time::at(tm)));
-    let now = try!(now);
+    let now = specified_time.map_or(Ok(time::now()), |st| {
+        datetime_info_to_timespec(st).map(|tm| time::at(tm))
+    });
+    let now = now?;
     let year = (now.tm_year + 1900).to_string();
     let month = mvec[now.tm_mon as usize];
     let mday = now.tm_mday.to_string();
@@ -43,10 +44,9 @@ pub fn k_skk_current_date_1(_: &mut Env, args: &Expr) -> Result<Expr> {
     Ok(klist!(year, month, mday, wday, hour, min, sec))
 }
 
-
 pub fn k_skk_current_date(mut env: &mut Env, args: &Expr) -> Result<Expr> {
     get_args!(args, &optional(f, Proc)(format, Any)(and_time, Any));
-    let date_information = try!(k_skk_current_date_1(&mut env, &knil()));
+    let date_information = k_skk_current_date_1(&mut env, &knil())?;
     let nil = knil();
     let format = format.unwrap_or(&nil);
     let gengo = knil(); //or t
@@ -84,17 +84,20 @@ pub fn k_skk_default_current_date(_: &mut Env, args: &Expr) -> Result<Expr> {
     Ok(knil())
 }
 
-
 pub fn init(mut env: &mut Env) -> Result<()> {
     env.fregister("skk-calc", kprim("k_skk_calc", k_skk_calc));
-    env.fregister("skk-current-date-1",
-                  kprim("k_skk_current_date_1", k_skk_current_date_1));
-    env.fregister("skk-current-date",
-                  kprim("k_skk_current_date", k_skk_current_date));
+    env.fregister(
+        "skk-current-date-1",
+        kprim("k_skk_current_date_1", k_skk_current_date_1),
+    );
+    env.fregister(
+        "skk-current-date",
+        kprim("k_skk_current_date", k_skk_current_date),
+    );
     let lisp = include_str!("skk.lisp");
     let mut input = lisp.chars().peekable();
     while let Some(e) = read_in(&mut input) {
-        let _ = try!(eval(&mut env, &e));
+        let _ = eval(&mut env, &e)?;
     }
 
     Ok(())

@@ -1,21 +1,11 @@
-use std::str::{Chars, FromStr};
 use std::iter::Peekable;
 use std::ops::Deref;
+use std::str::{Chars, FromStr};
 
 use expr::{Expr, Kfloat, Kint};
-use ::util::*;
+use util::*;
 
-macro_rules! try_opt {
-    ($e: expr) => (
-        match $e {
-            Some(e) => e,
-            None => return None
-        }
-        )
-}
-
-
-fn next_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<char> {
+fn next_nonwhitespaces(input: &mut Peekable<Chars>, first: char) -> Option<char> {
     match first.is_whitespace() {
         false => return Some(first),
         true => (),
@@ -26,7 +16,7 @@ fn next_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<c
     input.next()
 }
 
-fn peek_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<char> {
+fn peek_nonwhitespaces(input: &mut Peekable<Chars>, first: char) -> Option<char> {
     match first.is_whitespace() {
         false => return Some(first),
         true => (),
@@ -37,13 +27,11 @@ fn peek_nonwhitespaces(mut input: &mut Peekable<Chars>, first: char) -> Option<c
     input.peek().map(|c| c.clone())
 }
 
-
 fn is_delimiter(c: char) -> bool {
     c.is_whitespace() || "()\"'".contains(c)
 }
 
-
-fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Kint> {
+fn read_uint(input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Kint> {
     let mut acc = String::new();
     acc.push(first);
     while input.peek().unwrap_or(&' ').is_digit(radix) {
@@ -56,23 +44,22 @@ fn read_uint(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option
     Some(Kint::from_str_radix(&acc[..], radix).unwrap())
 }
 
-fn read_int(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Kint> {
+fn read_int(input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Kint> {
     match first {
-        '0'...'9' => Some(try_opt!(read_uint(input, first, radix))),
+        '0'...'9' => read_uint(input, first, radix),
         _ => {
-            let c = try_opt!(input.next());
+            let c = input.next()?;
             match first {
-                '+' => Some(try_opt!(read_uint(input, c, radix))),
-                '-' => Some(-1 * try_opt!(read_uint(input, c, radix))),
+                '+' => read_uint(input, c, radix),
+                '-' => Some(-1 * read_uint(input, c, radix)?),
                 _ => None,
             }
         }
     }
 }
 
-
-fn read_number(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
-    let i = try_opt!(read_int(input, first, radix));
+fn read_number(input: &mut Peekable<Chars>, first: char, radix: u32) -> Option<Expr> {
+    let i = read_int(input, first, radix)?;
     match input.peek() {
         Some(&'.') => {
             let mut acc = String::new();
@@ -83,7 +70,7 @@ fn read_number(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Opti
                 }
                 _ => acc.push('0'),
             }
-            acc.push(try_opt!(input.next()));
+            acc.push(input.next()?);
             while input.peek().unwrap_or(&' ').is_digit(radix) {
                 let c = match input.next() {
                     Some(x) => x,
@@ -99,7 +86,7 @@ fn read_number(mut input: &mut Peekable<Chars>, first: char, radix: u32) -> Opti
     }
 }
 
-fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+fn read_symbol(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let mut sym = first.to_string();
     while input.peek().map(|c| !is_delimiter(*c)).unwrap_or(false) {
         sym.push(input.next().unwrap());
@@ -111,28 +98,27 @@ fn read_symbol(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
 }
 
-fn read_plus(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
-    let c = try_opt!(input.peek()).clone();
+fn read_plus(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    let c = input.peek()?.clone();
     match c.is_digit(10) {
         true => read_number(input, first, 10),
         false => read_symbol(input, first),
     }
 }
 
-
-fn read_hyphen(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
-    let c = try_opt!(input.peek()).clone();
+fn read_hyphen(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    let c = input.peek()?.clone();
     match c.is_digit(10) {
         true => read_number(input, first, 10),
         false => read_symbol(input, first),
     }
 }
 
-fn read_string(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
+fn read_string(input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     let mut string = String::new();
     // :TODO: treat escapes
     loop {
-        let c = try_opt!(input.next());
+        let c = input.next()?;
         match c == '"' {
             true => return Some(kstr(string)),
             false => string.push(c),
@@ -140,17 +126,17 @@ fn read_string(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     }
 }
 
-fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
-    let c = try_opt!(next_nonwhitespaces(input, ' '));
+fn read_list(input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
+    let c = next_nonwhitespaces(input, ' ')?;
     let car = match c {
         ')' => return Some(knil()),
         _ => read_aux(input, c),
     };
 
-    let c = try_opt!(peek_nonwhitespaces(input, ' '));
+    let c = peek_nonwhitespaces(input, ' ')?;
     let cdr = if c == '.' {
-        let _ = try_opt!(next_nonwhitespaces(input, ' '));// == 'c'
-        match try_opt!(read_list(input, '(')) {
+        let _ = next_nonwhitespaces(input, ' ')?; // == 'c'
+        match read_list(input, '(')? {
             Expr::Cons(ref e, ref nil) => {
                 if nil.deref() == &knil() {
                     Some(e.deref().clone())
@@ -169,26 +155,26 @@ fn read_list(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
     }
 }
 
-fn read_quote(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
-    let v = try_opt!(read_aux(input, ' '));
+fn read_quote(input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
+    let v = read_aux(input, ' ')?;
     Some(klist!(ksym("quote"), v))
 }
 
-fn read_function(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
-    let v = try_opt!(read_aux(input, ' '));
+fn read_function(input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
+    let v = read_aux(input, ' ')?;
     Some(klist!(ksym("function"), v))
 }
 
-fn read_dispatch(mut input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
-    let v = try_opt!(input.next());
+fn read_dispatch(input: &mut Peekable<Chars>, _: char) -> Option<Expr> {
+    let v = input.next()?;
     match v {
         '\'' => read_function(input, '\''),
         v => panic!("unknown reader macro #{:?}", v),
     }
 }
 
-fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
-    let first = try_opt!(next_nonwhitespaces(input, first));
+fn read_aux(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    let first = next_nonwhitespaces(input, first)?;
     match first {
         '0'...'9' => read_number(input, first, 10),
         '-' => read_hyphen(input, first),
@@ -201,10 +187,9 @@ fn read_aux(mut input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
 }
 
-pub fn read_in(mut input: &mut Peekable<Chars>) -> Option<Expr> {
+pub fn read_in(input: &mut Peekable<Chars>) -> Option<Expr> {
     read_aux(input, ' ')
 }
-
 
 pub fn read(s: &str) -> Expr {
     let mut input = s.chars().peekable();
