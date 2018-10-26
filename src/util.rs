@@ -38,6 +38,11 @@ pub fn ksym<S: Into<String>>(s: S) -> Expr {
 }
 
 #[inline]
+pub fn kkw<S: Into<String>>(s: S) -> Expr {
+    Expr::Keyword(Rc::new(s.into()))
+}
+
+#[inline]
 pub fn kstr<S: Into<String>>(s: S) -> Expr {
     Expr::Str(Rc::new(s.into()))
 }

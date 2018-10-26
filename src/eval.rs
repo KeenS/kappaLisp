@@ -190,9 +190,12 @@ pub fn macro_fn(env: &mut Env, p: &Proc) -> Result<Option<Proc>> {
 
 pub fn eval(env: &mut Env, expr: &Expr) -> Result<Expr> {
     match expr {
-        Expr::Nil | Expr::Str(_) | Expr::Int(_) | Expr::Float(_) | Expr::Proc(_) => {
-            Ok(expr.clone())
-        }
+        Expr::Nil
+        | Expr::Str(_)
+        | Expr::Int(_)
+        | Expr::Float(_)
+        | Expr::Keyword(_)
+        | Expr::Proc(_) => Ok(expr.clone()),
         Expr::Sym(name) => match env.find(&name.to_owned()) {
             Ok(v) => Ok(v.clone()),
             Err(m) => {

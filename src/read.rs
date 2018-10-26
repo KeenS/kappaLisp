@@ -98,6 +98,15 @@ fn read_symbol(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     }
 }
 
+fn read_keyword(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
+    debug_assert_eq!(first, ':');
+    let mut kw = String::new();
+    while input.peek().map(|c| !is_delimiter(*c)).unwrap_or(false) {
+        kw.push(input.next().unwrap());
+    }
+    Some(kkw(kw))
+}
+
 fn read_plus(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
     let c = input.peek()?.clone();
     match c.is_digit(10) {
@@ -183,6 +192,7 @@ fn read_aux(input: &mut Peekable<Chars>, first: char) -> Option<Expr> {
         '"' => read_string(input, first),
         '\'' => read_quote(input, first),
         '#' => read_dispatch(input, first),
+        ':' => read_keyword(input, first),
         _ => read_symbol(input, first),
     }
 }

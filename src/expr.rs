@@ -20,6 +20,7 @@ pub enum Expr {
     Cons(Rc<Expr>, Rc<Expr>),
     Nil,
     Sym(Rc<String>),
+    Keyword(Rc<String>),
     Str(Rc<String>),
     Proc(Proc),
 }
@@ -31,6 +32,7 @@ pub enum Type {
     Cons,
     Nil,
     Sym,
+    Keyword,
     Str,
     Proc,
     Any,
@@ -131,6 +133,7 @@ impl fmt::Display for Expr {
             }
             Expr::Nil => write!(f, "nil"),
             Expr::Sym(s) => write!(f, "{}", s),
+            Expr::Keyword(s) => write!(f, ":{}", s),
             Expr::Str(s) => write!(f, "\"{}\"", s),
             Expr::Proc(p) => write!(f, "{}", p),
         }
@@ -145,6 +148,7 @@ impl fmt::Display for Type {
             Type::Cons => write!(f, "cons"),
             Type::Nil => write!(f, "nil"),
             Type::Sym => write!(f, "symbol"),
+            Type::Keyword => write!(f, "keyword"),
             Type::Str => write!(f, "string"),
             Type::Proc => write!(f, "procedure"),
             Type::Any => write!(f, "any"),

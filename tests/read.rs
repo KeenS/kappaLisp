@@ -61,6 +61,15 @@ fn test_read_symbol() {
 }
 
 #[test]
+fn test_read_keyword() {
+    assert_eq!(read(":keyword"), Ok(kkw("keyword")));
+    assert_eq!(read(":+keyword"), Ok(kkw("+keyword")));
+    assert_eq!(read(":-keyword"), Ok(kkw("-keyword")));
+    assert_eq!(read(":key-word"), Ok(kkw("key-word")));
+    assert_eq!(read(":keyword2"), Ok(kkw("keyword2")));
+}
+
+#[test]
 fn test_read_string() {
     assert_eq!(read("\"string\""), Ok(kstr("string")));
     assert_eq!(read("\"str()ing\""), Ok(kstr("str()ing")));
